@@ -11,6 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@SuppressWarnings("unused") // чтобы IDEA не ругалась, что этот класс никогда не используется (жёлтая ошибка)
 public class ViewStatsDto {
     private String app;
     private String uri;
