@@ -9,7 +9,7 @@ import ru.practicum.stats.model.EndpointHit;
 import ru.practicum.stats.repository.StatRepository;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -24,7 +24,7 @@ public class StatServiceImpl implements StatService {
     }
 
     @Override
-    public Collection<ViewStatsDto> getStats(LocalDateTime startDate, LocalDateTime endDate, Collection<String> uris, boolean unique) {
+    public List<ViewStatsDto> getStats(LocalDateTime startDate, LocalDateTime endDate, List<String> uris, boolean unique) {
         return unique ?
                 statRepository.getStatUnique(startDate, endDate, uris) : statRepository.getStat(startDate, endDate, uris);
     }
