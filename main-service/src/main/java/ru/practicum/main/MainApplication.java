@@ -4,11 +4,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
-import ru.practicum.stats.client.StatsClient;
-import ru.practicum.stats.dto.EndpointHitDto;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @SpringBootApplication
 @ComponentScan(basePackages = {"ru.practicum.main", "ru.practicum.stats.client"})
