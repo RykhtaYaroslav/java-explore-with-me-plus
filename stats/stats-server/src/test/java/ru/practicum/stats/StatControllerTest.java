@@ -42,8 +42,8 @@ class StatControllerTest {
         EndpointHitDto hit = new EndpointHitDto("app", "uri", "192.0.0.1", LocalDateTime.now());
 
         mockMvc.perform(MockMvcRequestBuilders.post("/hit")
-                .contentType("application/json")
-                .content(objectMapper.writeValueAsString(hit)))
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(hit)))
                 .andExpect(MockMvcResultMatchers.status().isCreated());
     }
 
@@ -72,7 +72,7 @@ class StatControllerTest {
     }
 
     @Test
-    void getEmptyStatsWithoutUris() throws Exception{
+    void getEmptyStatsWithoutUris() throws Exception {
         when(statService.getStats(start, end, null, true))
                 .thenReturn(List.of());
 
@@ -87,9 +87,9 @@ class StatControllerTest {
     @Test
     void getStatsWhereStartAfterEnd() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/stats")
-                .param("start", endStr)
-                .param("end", startStr)
-                .param("unique", "true"))
+                        .param("start", endStr)
+                        .param("end", startStr)
+                        .param("unique", "true"))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 }

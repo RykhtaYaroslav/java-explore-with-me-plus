@@ -23,9 +23,9 @@ public interface StatRepository extends JpaRepository<EndpointHit, Long> {
 
     @Query("""
             select new ru.practicum.stats.dto.ViewStatsDto(h.app, h.uri, COUNT(h.ip))
-            from EndpointHit h where h.timestamp between :start and :end 
-            and (:uris is null or h.uri in :uris) 
-            group by h.app, h.uri 
+            from EndpointHit h where h.timestamp between :start and :end
+            and (:uris is null or h.uri in :uris)
+            group by h.app, h.uri
             order by COUNT(h.ip) desc
             """)
     List<ViewStatsDto> getStat(@Param("start") LocalDateTime startDate,
