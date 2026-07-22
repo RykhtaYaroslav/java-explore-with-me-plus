@@ -14,14 +14,13 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequest(BadRequestException e) {
-        ErrorResponse er = ErrorResponse.builder()
+        return ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.name())
                 .reason("Некорректный запрос")
                 .message(e.getMessage())
                 .timestamp(LocalDateTime.now())
                 .errors(getErrorsList(e))
                 .build();
-        return er;
     }
 
     private List<String> getErrorsList(Exception e) {

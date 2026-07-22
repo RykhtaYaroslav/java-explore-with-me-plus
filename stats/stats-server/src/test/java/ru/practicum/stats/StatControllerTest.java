@@ -1,3 +1,5 @@
+package ru.practicum.stats;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
@@ -8,7 +10,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import ru.practicum.stats.StatsServerApplication;
 import ru.practicum.stats.controller.StatController;
 import ru.practicum.stats.dto.EndpointHitDto;
 import ru.practicum.stats.dto.ViewStatsDto;
@@ -23,7 +24,7 @@ import static org.mockito.Mockito.when;
 @WebMvcTest(StatController.class)
 @ContextConfiguration(classes = StatsServerApplication.class)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-public class StatControllerTest {
+class StatControllerTest {
     private final MockMvc mockMvc;
     private final ObjectMapper objectMapper;
 
@@ -37,17 +38,17 @@ public class StatControllerTest {
     private StatService statService;
 
     @Test
-    public void saveHitTest() throws Exception {
+    void saveHitTest() throws Exception {
         EndpointHitDto hit = new EndpointHitDto("app", "uri", "192.0.0.1", LocalDateTime.now());
 
         mockMvc.perform(MockMvcRequestBuilders.post("/hit")
-                .contentType("application/json")
-                .content(objectMapper.writeValueAsString(hit)))
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(hit)))
                 .andExpect(MockMvcResultMatchers.status().isCreated());
     }
 
     @Test
-    public void getStatsWithUris() throws Exception {
+    void getStatsWithUris() throws Exception {
         List<String> uris = List.of("/users", "/events");
 
         List<ViewStatsDto> mockData = List.of(
@@ -71,7 +72,7 @@ public class StatControllerTest {
     }
 
     @Test
-    public void getStatsWithoutUris() throws Exception{
+    void getEmptyStatsWithoutUris() throws Exception {
         when(statService.getStats(start, end, null, true))
                 .thenReturn(List.of());
 
@@ -84,11 +85,11 @@ public class StatControllerTest {
     }
 
     @Test
-    public void getStatsWhereStartAfterEnd() throws Exception {
+    void getStatsWhereStartAfterEnd() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.get("/stats")
-                .param("start", endStr)
-                .param("end", startStr)
-                .param("unique", "true"))
+                        .param("start", endStr)
+                        .param("end", startStr)
+                        .param("unique", "true"))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 }
