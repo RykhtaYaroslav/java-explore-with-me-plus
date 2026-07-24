@@ -13,6 +13,7 @@ import java.lang.annotation.Target;
 @Constraint(validatedBy = FutureAfterHoursValidator.class) // Класс содержащий логику
 @Target({ElementType.FIELD, ElementType.PARAMETER}) // Можно ставить над полями и параметрами
 @Retention(RetentionPolicy.RUNTIME) // Аннотация доступна во время выполнения
+@SuppressWarnings("unused")
 public @interface FutureAfterHours {
     String message() default "Event date must be within the specified future hours";
 
