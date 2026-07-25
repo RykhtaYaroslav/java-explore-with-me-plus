@@ -30,7 +30,7 @@ public class EventServiceImpl implements EventService {
 
         Long categoryId = newEventDto.getCategoryId();
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFoundException((String.format("Category with id = %d not found", categoryId)), "categoryId", categoryId));
+                .orElseThrow(() -> new NotFoundException((String.format("Category with id = %d not found", categoryId)), "CategoryId", categoryId));
 
         Event event = eventMapper.toEntity(newEventDto, initiator, category);
         event = eventRepository.save(event);
