@@ -1,4 +1,4 @@
-package ru.practicum.main.event;
+package ru.practicum.main.event.service;
 
 import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +20,6 @@ import ru.practicum.main.event.dto.user.mapper.EventMapper;
 import ru.practicum.main.event.model.Event;
 import ru.practicum.main.event.model.EventState;
 import ru.practicum.main.event.repository.EventRepository;
-import ru.practicum.main.event.service.EventServiceImpl;
 import ru.practicum.main.exception.NotFoundException;
 import ru.practicum.main.user.model.User;
 import ru.practicum.main.user.repository.UserRepository;
