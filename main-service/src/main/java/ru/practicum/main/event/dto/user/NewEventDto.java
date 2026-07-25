@@ -9,6 +9,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,9 +26,8 @@ import static ru.practicum.main.util.EwmConstants.MIN_ANNOTATION_LENGTH;
 import static ru.practicum.main.util.EwmConstants.MIN_DESCRIPTION_LENGTH;
 import static ru.practicum.main.util.EwmConstants.MIN_TITLE_LENGTH;
 
-@Getter
-@Setter
-@Builder
+@Data
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class NewEventDto {
