@@ -5,6 +5,7 @@ import org.mapstruct.Mapping;
 import ru.practicum.main.category.model.Category;
 import ru.practicum.main.event.dto.LocationDto;
 import ru.practicum.main.event.dto.publicapi.EventFullDto;
+import ru.practicum.main.event.dto.publicapi.EventShortDto;
 import ru.practicum.main.event.dto.user.NewEventDto;
 import ru.practicum.main.event.model.Event;
 import ru.practicum.main.event.model.Location;
@@ -25,4 +26,6 @@ public interface EventMapper {
     Location toLocation(LocationDto locationDto);
 
     EventFullDto toFullDto(Event event, Long views, Long confirmedRequests);
+
+    EventShortDto toShortDto(Event event, Long views, Long confirmedRequests);
 }
