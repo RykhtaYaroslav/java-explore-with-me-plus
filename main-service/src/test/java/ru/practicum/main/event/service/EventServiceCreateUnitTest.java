@@ -24,6 +24,7 @@ import ru.practicum.main.exception.NotFoundException;
 import ru.practicum.main.user.model.User;
 import ru.practicum.main.user.repository.UserRepository;
 import ru.practicum.main.util.TestDataUtils;
+import ru.practicum.stats.client.StatsClient;
 
 import java.util.Optional;
 
@@ -40,6 +41,9 @@ class EventServiceCreateUnitTest {
 
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private StatsClient statsClient;
 
     @Spy
     private EventMapper eventMapper = Mappers.getMapper(EventMapper.class);
@@ -89,6 +93,7 @@ class EventServiceCreateUnitTest {
         Mockito.verify(eventRepository, Mockito.times(1)).save(Mockito.any(Event.class));
 
         Mockito.verifyNoMoreInteractions(userRepository, categoryRepository, eventRepository);
+        Mockito.verifyNoInteractions(statsClient);
     }
 
     @Test
@@ -102,7 +107,7 @@ class EventServiceCreateUnitTest {
                 .hasFieldOrPropertyWithValue("rejectedValue", USER_ID);
 
         Mockito.verify(userRepository, Mockito.times(1)).findById(USER_ID);
-        Mockito.verifyNoInteractions(eventRepository, categoryRepository);
+        Mockito.verifyNoInteractions(eventRepository, categoryRepository, statsClient);
     }
 
     @Test
@@ -118,7 +123,9 @@ class EventServiceCreateUnitTest {
 
         Mockito.verify(userRepository, Mockito.times(1)).findById(USER_ID);
         Mockito.verify(categoryRepository, Mockito.times(1)).findById(CATEGORY_ID);
-        Mockito.verifyNoInteractions(eventRepository);
+
+        Mockito.verifyNoMoreInteractions(userRepository, categoryRepository);
+        Mockito.verifyNoInteractions(eventRepository, statsClient);
     }
 
 
