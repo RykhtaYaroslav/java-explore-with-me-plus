@@ -8,9 +8,13 @@ import ru.practicum.main.category.repository.CategoryRepository;
 import ru.practicum.main.event.dto.EventFullDto;
 import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.NewEventDto;
+import ru.practicum.main.event.dto.StateActionUser;
+import ru.practicum.main.event.dto.UpdateEventUserRequest;
 import ru.practicum.main.event.dto.mapper.EventMapper;
 import ru.practicum.main.event.model.Event;
+import ru.practicum.main.event.model.EventState;
 import ru.practicum.main.event.repository.EventRepository;
+import ru.practicum.main.exception.EventUpdateException;
 import ru.practicum.main.exception.NotFoundException;
 import ru.practicum.main.request.dto.ConfirmedRequestsCount;
 import ru.practicum.main.request.model.RequestStatus;
@@ -26,6 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static java.time.LocalDateTime.now;
+import static ru.practicum.main.util.EwmConstants.DATE_TIME_FORMATTER;
 
 @Service
 @RequiredArgsConstructor
@@ -75,7 +82,7 @@ public class EventServiceImpl implements EventService {
     /**
      * Retrieves full details of a specific event created by a specific initiator.
      *
-     * @param userId the unique identifier of the event initiator
+     * @param userId  the unique identifier of the event initiator
      * @param eventId the unique identifier of the requested event
      * @return the populated {@link EventFullDto} with views and confirmed requests
      * @throws NotFoundException if user or event does not exist, or event does not belong to the user
@@ -85,7 +92,7 @@ public class EventServiceImpl implements EventService {
     public EventFullDto findByInitiatorAndEventIds(Long userId, Long eventId) {
         getUser(userId); // only for user existence checking
 
-        Event event = getEventByIdAndInitiator(userId, eventId); // Validate event by user and throws exception if incorrect
+        Event event = getEventByIdAndInitiator(userId, eventId); // Validate event by user and throws exception if no access
 
         List<Event> events = List.of(event);
         Map<Long, Long> views = getViewsByEventMap(events);
@@ -94,6 +101,36 @@ public class EventServiceImpl implements EventService {
         return eventMapper.toFullDto(event, views.getOrDefault(eventId, 0L), confirmedRequests.getOrDefault(eventId, 0L));
     }
 
+    /**
+     * Updates an existing event by its initiator.
+     * <p>
+     * Validates the event's eligibility for update, applies non-null fields from the request DTO,
+     * saves the updated entity, and enriches the result with current views and confirmed requests.
+     *
+     * @param request the DTO containing updated event details
+     * @param userId  the ID of the user initiating the update
+     * @param eventId the ID of the event to be updated
+     * @return the updated {@link EventFullDto} containing full event details and updated statistics
+     * @throws NotFoundException    if the user, event, or specified category is not found
+     * @throws EventUpdateException if the event is already published or scheduled to start within 2 hours
+     */
+    @Override
+    public EventFullDto updateEventByInitiator(UpdateEventUserRequest request, Long userId, Long eventId) {
+        // Retrieves and validates event: throws NotFoundException if user/event doesn't exist,
+        // and EventUpdateException if event is PUBLISHED or starts in less than 2 hours
+        Event event = getEventIfValidToUpdate(userId, eventId);
+
+        // Updates event entity with non-null fields from request DTO, including category and state transition
+        updateEventFromNotNullDtoFields(request, event);
+
+        eventRepository.save(event);
+
+        List<Event> events = List.of(event);
+        Map<Long, Long> views = getViewsByEventMap(events);
+        Map<Long, Long> confirmedRequests = getConReqByEventMap(events);
+
+        return eventMapper.toFullDto(event, views.getOrDefault(eventId, 0L), confirmedRequests.getOrDefault(eventId, 0L));
+    }
 
     /**
      * Retrieves a {@link User} entity by its ID from the repository.
@@ -137,7 +174,7 @@ public class EventServiceImpl implements EventService {
     private List<ViewStatsDto> getViewStatsDtoList(List<Event> events) {
         // This method pulls statistics about events from stat module
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = now();
 
         List<String> uris = events.stream()
                 .map(event -> String.format("/events/%d", event.getId()))
@@ -199,7 +236,7 @@ public class EventServiceImpl implements EventService {
     /**
      * Retrieves an {@link Event} entity by its ID and ensures it belongs to the specified initiator.
      *
-     * @param userId the unique identifier of the event initiator
+     * @param userId  the unique identifier of the event initiator
      * @param eventId the unique identifier of the event to fetch
      * @return the found {@link Event} entity
      * @throws NotFoundException if the event does not exist or does not belong to the specified user
@@ -209,5 +246,69 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException(
                         String.format("Event with id = %d not found for user with id = %d", eventId, userId),
                         "EventId", eventId));
+    }
+
+    /**
+     * Retrieves an event by its ID and initiator ID after validating that it exists,
+     * belongs to the user, and meets all prerequisites for updating.
+     * <p>
+     * Validation includes checking that the user exists, the event belongs to the specified user,
+     * the event is not in a {@code PUBLISHED} state, and the event date is scheduled at least 2 hours in the future.
+     *
+     * @param userId  the ID of the user requesting the update
+     * @param eventId the ID of the event to be updated
+     * @return the validated {@link Event} entity ready for modification
+     * @throws NotFoundException    if either the user or the event is not found
+     * @throws EventUpdateException if the event is already published or scheduled to start within 2 hours
+     */
+    private Event getEventIfValidToUpdate(Long userId, Long eventId) {
+        getUser(userId); // only for user existence checking
+        Event event = getEventByIdAndInitiator(userId, eventId); // Validate event by user and throws exception if no access
+
+        if (event.getState() == EventState.PUBLISHED) {
+            String message = String.format("Event with id = %d cannot be updated because its status is PUBLISHED", eventId);
+            throw new EventUpdateException(message, "State", event.getState());
+        }
+
+        if (event.getEventDate().isBefore(now().plusHours(2))) {
+            String message = String.format("Event with id = %d cannot be updated because event date %s is less than 2 hours from now", eventId, event.getEventDate().format(DATE_TIME_FORMATTER));
+            throw new EventUpdateException(
+                    message,
+                    "EventDate",
+                    event.getEventDate()
+            );
+        }
+        return event;
+    }
+
+    /**
+     * Updates non-null fields of the existing {@link Event} entity based on the provided {@link UpdateEventUserRequest}.
+     * <p>
+     * Performs partial mapping of basic scalar fields via {@link EventMapper}, fetches and assigns
+     * a new {@link Category} if {@code categoryId} is present, and updates the {@link EventState}
+     * according to the requested {@link StateActionUser}.
+     *
+     * @param request the DTO containing updated event details
+     * @param event   the target {@link Event} entity to be updated
+     * @throws NotFoundException if the category specified by {@code categoryId} does not exist
+     */
+    private void updateEventFromNotNullDtoFields(UpdateEventUserRequest request, Event event) {
+        eventMapper.updateEventFromUserDto(request, event);
+
+        if (request.getCategoryId() != null) {
+            Category newCategory = categoryRepository.findById(request.getCategoryId()).orElseThrow(() -> new NotFoundException(
+                    String.format("Category with id = %d was not found", request.getCategoryId()),
+                    "CategoryId",
+                    request.getCategoryId()
+            ));
+            event.setCategory(newCategory);
+        }
+        StateActionUser stateActionUser = request.getStateAction();
+
+        switch (stateActionUser) {
+            case CANCEL_REVIEW -> event.setState(EventState.CANCELED);
+            case SEND_TO_REVIEW -> event.setState(EventState.PENDING);
+            case null, default -> {/*Do nothing*/}
+        }
     }
 }
