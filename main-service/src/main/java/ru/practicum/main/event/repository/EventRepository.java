@@ -8,17 +8,15 @@ import ru.practicum.main.event.model.Event;
 import java.util.List;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
-
     @Query(value = """
-            SELECT *
-            FROM events
+            SELECT e.*
+            FROM events AS e
             WHERE initiator_id = :userId
+            ORDER BY e.id ASC
             OFFSET :from
             LIMIT :size
             """, nativeQuery = true)
     List<Event> findByInitiatorId(@Param("userId") Long userId,
                                   @Param("from") Integer from,
                                   @Param("size") Integer size);
-
-
 }
