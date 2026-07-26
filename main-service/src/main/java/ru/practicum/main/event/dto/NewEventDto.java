@@ -1,4 +1,4 @@
-package ru.practicum.main.event.dto.privateapi;
+package ru.practicum.main.event.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,7 +11,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.main.event.dto.LocationDto;
 import ru.practicum.main.util.validation.FutureAfterHours;
 
 import java.time.LocalDateTime;

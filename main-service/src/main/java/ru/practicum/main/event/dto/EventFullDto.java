@@ -1,4 +1,4 @@
-package ru.practicum.main.event.dto.publicapi;
+package ru.practicum.main.event.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.main.category.dto.CategoryDto;
-import ru.practicum.main.event.dto.LocationDto;
 import ru.practicum.main.event.model.EventState;
 import ru.practicum.main.user.dto.UserShortDto;
 

@@ -1,8 +1,8 @@
 package ru.practicum.main.event.service;
 
-import ru.practicum.main.event.dto.publicapi.EventFullDto;
-import ru.practicum.main.event.dto.publicapi.EventShortDto;
-import ru.practicum.main.event.dto.privateapi.NewEventDto;
+import ru.practicum.main.event.dto.EventFullDto;
+import ru.practicum.main.event.dto.EventShortDto;
+import ru.practicum.main.event.dto.NewEventDto;
 
 import java.util.List;
 
