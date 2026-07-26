@@ -12,4 +12,10 @@ public class NotFoundException extends RuntimeException {
         this.fieldName = fieldName;
         this.rejectedValue = rejectedValue;
     }
+
+    public NotFoundException(String message) {
+        super(message);
+        this.fieldName = null;       // Специфичные поля заполняем заглушками
+        this.rejectedValue = null;
+    }
 }
