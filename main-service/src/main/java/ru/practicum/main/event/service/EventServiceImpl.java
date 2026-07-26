@@ -118,7 +118,7 @@ public class EventServiceImpl implements EventService {
     public EventFullDto updateEventByInitiator(UpdateEventUserRequest request, Long userId, Long eventId) {
         // Retrieves and validates event: throws NotFoundException if user/event doesn't exist,
         // and EventUpdateException if event is PUBLISHED or starts in less than 2 hours
-        Event event = getEventIfValidToUpdate(userId, eventId);
+        Event event = getEventIfValidToUpdate(request, userId, eventId);
 
         // Updates event entity with non-null fields from request DTO, including category and state transition
         updateEventFromNotNullDtoFields(request, event);
@@ -252,16 +252,17 @@ public class EventServiceImpl implements EventService {
      * Retrieves an event by its ID and initiator ID after validating that it exists,
      * belongs to the user, and meets all prerequisites for updating.
      * <p>
-     * Validation includes checking that the user exists, the event belongs to the specified user,
-     * the event is not in a {@code PUBLISHED} state, and the event date is scheduled at least 2 hours in the future.
+     * Validates that the event is not in a {@code PUBLISHED} state, and that the event date
+     * is at least 2 hours in the future (unless a valid new date is provided in the request).
      *
+     * @param request the DTO containing updated event details
      * @param userId  the ID of the user requesting the update
      * @param eventId the ID of the event to be updated
      * @return the validated {@link Event} entity ready for modification
      * @throws NotFoundException    if either the user or the event is not found
-     * @throws EventUpdateException if the event is already published or scheduled to start within 2 hours
+     * @throws EventUpdateException if the event is published or scheduled within 2 hours without a valid date postponement
      */
-    private Event getEventIfValidToUpdate(Long userId, Long eventId) {
+    private Event getEventIfValidToUpdate(UpdateEventUserRequest request, Long userId, Long eventId) {
         getUser(userId); // only for user existence checking
         Event event = getEventByIdAndInitiator(userId, eventId); // Validate event by user and throws exception if no access
 
@@ -270,7 +271,8 @@ public class EventServiceImpl implements EventService {
             throw new EventUpdateException(message, "State", event.getState());
         }
 
-        if (event.getEventDate().isBefore(now().plusHours(2))) {
+        LocalDateTime deadline = now().plusHours(2);
+        if (event.getEventDate().isBefore(deadline) && ((request.getEventDate() == null) || request.getEventDate().isBefore(deadline))) {
             String message = String.format("Event with id = %d cannot be updated because event date %s is less than 2 hours from now", eventId, event.getEventDate().format(DATE_TIME_FORMATTER));
             throw new EventUpdateException(
                     message,
