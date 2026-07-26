@@ -56,7 +56,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<EventShortDto> findByInitiatorId(Long userId, Integer from, Integer size) {
+    public List<EventShortDto> findAllByInitiatorId(Long userId, Integer from, Integer size) {
         getUser(userId); // only for user existence checking
 
         List<Event> events = eventRepository.findByInitiatorId(userId, from, size);

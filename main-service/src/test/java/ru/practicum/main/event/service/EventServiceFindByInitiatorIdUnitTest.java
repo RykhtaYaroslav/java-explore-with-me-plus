@@ -112,7 +112,7 @@ class EventServiceFindByInitiatorIdUnitTest {
         when(requestRepository.countRequestsCountByEventIds(eventIds, RequestStatus.CONFIRMED))
                 .thenReturn(List.of(new ConfirmedRequestsCount(FIRST_EVENT_ID, 1L), new ConfirmedRequestsCount(SECOND_EVENT_ID, 2L)));
 
-        List<EventShortDto> result = eventService.findByInitiatorId(USER_ID, 0, 10);
+        List<EventShortDto> result = eventService.findAllByInitiatorId(USER_ID, 0, 10);
 
         assertThat(result)
                 .hasSize(2)
@@ -166,7 +166,7 @@ class EventServiceFindByInitiatorIdUnitTest {
         when(requestRepository.countRequestsCountByEventIds(eventIds, RequestStatus.CONFIRMED))
                 .thenReturn(Collections.emptyList());
 
-        List<EventShortDto> result = eventService.findByInitiatorId(USER_ID, 0, 10);
+        List<EventShortDto> result = eventService.findAllByInitiatorId(USER_ID, 0, 10);
 
         assertThat(result)
                 .hasSize(2)
@@ -211,7 +211,7 @@ class EventServiceFindByInitiatorIdUnitTest {
         when(eventRepository.findByInitiatorId(eq(USER_ID), any(Integer.class), any(Integer.class)))
                 .thenReturn(Collections.emptyList());
 
-        List<EventShortDto> result = eventService.findByInitiatorId(USER_ID, 0, 10);
+        List<EventShortDto> result = eventService.findAllByInitiatorId(USER_ID, 0, 10);
 
         assertThat(result).isEmpty();
 
@@ -227,7 +227,7 @@ class EventServiceFindByInitiatorIdUnitTest {
     void shouldThrowNotFoundExceptionWhenUserNotFound() {
         Mockito.when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> eventService.findByInitiatorId(USER_ID, 0, 10))
+        assertThatThrownBy(() -> eventService.findAllByInitiatorId(USER_ID, 0, 10))
                 .isInstanceOf(NotFoundException.class)
                 .hasFieldOrPropertyWithValue("fieldName", "UserId")
                 .hasFieldOrPropertyWithValue("rejectedValue", USER_ID);

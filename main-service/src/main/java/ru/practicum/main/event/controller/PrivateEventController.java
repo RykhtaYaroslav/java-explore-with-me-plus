@@ -35,11 +35,11 @@ public class PrivateEventController {
     }
 
     @GetMapping
-    public List<EventShortDto> findByInitiatorId(
+    public List<EventShortDto> findAllByInitiatorId(
             @PathVariable @Positive Long userId,
             @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
             @RequestParam(defaultValue = "10") @Positive Integer size) {
-        return eventService.findByInitiatorId(userId, from, size);
+        return eventService.findAllByInitiatorId(userId, from, size);
     }
 
     @GetMapping("/{eventId}")
