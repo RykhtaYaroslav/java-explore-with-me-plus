@@ -1,4 +1,4 @@
-package ru.practicum.main.event.dto.user;
+package ru.practicum.main.event.dto.privateapi;
 
 public enum StateActionUser {
     SEND_TO_REVIEW, // отправить отменённое событие обратно на модерацию
