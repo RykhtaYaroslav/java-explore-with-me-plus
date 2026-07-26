@@ -11,7 +11,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 import ru.practicum.main.category.model.Category;
 import ru.practicum.main.category.repository.CategoryRepository;
 import ru.practicum.main.event.dto.publicapi.EventFullDto;
@@ -21,6 +20,7 @@ import ru.practicum.main.event.model.Event;
 import ru.practicum.main.event.model.EventState;
 import ru.practicum.main.event.repository.EventRepository;
 import ru.practicum.main.exception.NotFoundException;
+import ru.practicum.main.request.repository.RequestRepository;
 import ru.practicum.main.user.model.User;
 import ru.practicum.main.user.repository.UserRepository;
 import ru.practicum.main.util.TestDataUtils;
@@ -43,9 +43,15 @@ class EventServiceCreateUnitTest {
     private CategoryRepository categoryRepository;
 
     @Mock
-    private StatsClient statsClient;
+    private RequestRepository requestRepository;
 
+    @Mock
+    private StatsClient statRepository;
+
+    // MapStruct warns against using Mappers.getMapper() for Spring-managed mappers.
+    // Suppressed here because factory instantiation is required to spy on the real mapper in unit tests without loading the Spring context.
     @Spy
+    @SuppressWarnings("all")
     private EventMapper eventMapper = Mappers.getMapper(EventMapper.class);
 
     @InjectMocks
@@ -58,12 +64,6 @@ class EventServiceCreateUnitTest {
     private static final Long USER_ID = 100L;
     private static final Long CATEGORY_ID = 10L;
     private static final Long EVENT_ID = 1L;
-
-    @Autowired
-    private String fieldName;
-
-    @Autowired
-    private Object rejectedValue;
 
     @Test
     @DisplayName("Успешное создание нового ивента из DTO со всеми полями")
@@ -93,7 +93,7 @@ class EventServiceCreateUnitTest {
         Mockito.verify(eventRepository, Mockito.times(1)).save(Mockito.any(Event.class));
 
         Mockito.verifyNoMoreInteractions(userRepository, categoryRepository, eventRepository);
-        Mockito.verifyNoInteractions(statsClient);
+        Mockito.verifyNoInteractions(statRepository, requestRepository);
     }
 
     @Test
@@ -107,7 +107,9 @@ class EventServiceCreateUnitTest {
                 .hasFieldOrPropertyWithValue("rejectedValue", USER_ID);
 
         Mockito.verify(userRepository, Mockito.times(1)).findById(USER_ID);
-        Mockito.verifyNoInteractions(eventRepository, categoryRepository, statsClient);
+
+        Mockito.verifyNoMoreInteractions(userRepository);
+        Mockito.verifyNoInteractions(eventRepository, categoryRepository, statRepository, requestRepository);
     }
 
     @Test
@@ -125,7 +127,7 @@ class EventServiceCreateUnitTest {
         Mockito.verify(categoryRepository, Mockito.times(1)).findById(CATEGORY_ID);
 
         Mockito.verifyNoMoreInteractions(userRepository, categoryRepository);
-        Mockito.verifyNoInteractions(eventRepository, statsClient);
+        Mockito.verifyNoInteractions(eventRepository, statRepository, requestRepository);
     }
 
 
