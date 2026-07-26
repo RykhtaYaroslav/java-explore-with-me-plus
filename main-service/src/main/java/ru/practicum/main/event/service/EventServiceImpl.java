@@ -48,6 +48,7 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException((String.format("Category with id = %d not found", categoryId)), "CategoryId", categoryId));
 
         Event event = eventMapper.toEntity(newEventDto, initiator, category);
+
         event = eventRepository.save(event);
 
         return eventMapper.toFullDto(event, 0L, 0L);
@@ -69,6 +70,28 @@ public class EventServiceImpl implements EventService {
 
         return events.stream()
                 .map(event -> saturateEventShortDto(event, viewsByEventMap, confirmedRequestsByEventMap)).toList();
+    }
+
+    /**
+     * Retrieves full details of a specific event created by a specific initiator.
+     *
+     * @param userId the unique identifier of the event initiator
+     * @param eventId the unique identifier of the requested event
+     * @return the populated {@link EventFullDto} with views and confirmed requests
+     * @throws NotFoundException if user or event does not exist, or event does not belong to the user
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public EventFullDto findByInitiatorAndEventIds(Long userId, Long eventId) {
+        getUser(userId); // only for user existence checking
+
+        Event event = getEventByIdAndInitiator(userId, eventId); // Validate event by user and throws exception if incorrect
+
+        List<Event> events = List.of(event);
+        Map<Long, Long> views = getViewsByEventMap(events);
+        Map<Long, Long> confirmedRequests = getConReqByEventMap(events);
+
+        return eventMapper.toFullDto(event, views.getOrDefault(eventId, 0L), confirmedRequests.getOrDefault(eventId, 0L));
     }
 
 
@@ -161,8 +184,8 @@ public class EventServiceImpl implements EventService {
      * Enriches an {@link Event} entity with its calculated views and confirmed requests
      * and maps it to a short DTO representation.
      *
-     * @param event the event entity to map
-     * @param viewsByEventMap a map containing event IDs and their view counts
+     * @param event                       the event entity to map
+     * @param viewsByEventMap             a map containing event IDs and their view counts
      * @param confirmedRequestsByEventMap a map containing event IDs and their confirmed request counts
      * @return the fully populated {@link EventShortDto}
      */
@@ -171,5 +194,20 @@ public class EventServiceImpl implements EventService {
         Long confirmedRequests = confirmedRequestsByEventMap.getOrDefault(event.getId(), 0L);
 
         return eventMapper.toShortDto(event, views, confirmedRequests);
+    }
+
+    /**
+     * Retrieves an {@link Event} entity by its ID and ensures it belongs to the specified initiator.
+     *
+     * @param userId the unique identifier of the event initiator
+     * @param eventId the unique identifier of the event to fetch
+     * @return the found {@link Event} entity
+     * @throws NotFoundException if the event does not exist or does not belong to the specified user
+     */
+    private Event getEventByIdAndInitiator(Long userId, Long eventId) {
+        return eventRepository.findByIdAndInitiatorId(eventId, userId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Event with id = %d not found for user with id = %d", eventId, userId),
+                        "EventId", eventId));
     }
 }

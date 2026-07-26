@@ -41,4 +41,10 @@ public class PrivateEventController {
             @RequestParam(defaultValue = "10") @Positive Integer size) {
         return eventService.findByInitiatorId(userId, from, size);
     }
+
+    @GetMapping("/{eventId}")
+    public EventFullDto findByInitiatorAndEventIds(@PathVariable @Positive Long userId, @PathVariable @Positive Long eventId) {
+        return eventService.findByInitiatorAndEventIds(userId, eventId);
+
+    }
 }

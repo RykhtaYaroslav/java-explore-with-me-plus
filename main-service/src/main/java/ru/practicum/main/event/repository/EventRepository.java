@@ -6,8 +6,10 @@ import org.springframework.data.repository.query.Param;
 import ru.practicum.main.event.model.Event;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
+    @SuppressWarnings("all")
     @Query(value = """
             SELECT e.*
             FROM events AS e
@@ -19,4 +21,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByInitiatorId(@Param("userId") Long userId,
                                   @Param("from") Integer from,
                                   @Param("size") Integer size);
+
+    Optional<Event> findByIdAndInitiatorId(Long id, Long initiatorId);
 }
