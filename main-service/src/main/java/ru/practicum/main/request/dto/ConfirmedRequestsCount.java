@@ -1,5 +1,9 @@
 package ru.practicum.main.request.dto;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 /**
  * Projection DTO used to encapsulate the total count of participation requests associated with a specific event.
  * <p>
@@ -10,5 +14,13 @@ package ru.practicum.main.request.dto;
  * @param eventId the unique identifier of the target event
  * @param count   the total number of participation requests for the specified event and request status
  */
-public record ConfirmedRequestsCount(Long eventId, Long count) {}
+@Entity
+@Table(name = "requests", indexes = {})
+public record ConfirmedRequestsCount(Long eventId, Long count) {
+
+    @Id
+    private static Long id;
+
+    //потом это все убери Сахар
+}
 // DTO for extracting confirmed requests from RequestRepository for eventServiceImpl

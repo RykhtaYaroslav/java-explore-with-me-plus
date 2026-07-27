@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface RequestRepository extends JpaRepository<ParticipationRequest, Long> {
 
-    /*@Query("""
+    @Query("""
             SELECT new ru.practicum.main.request.dto.ConfirmedRequestsCount(r.event.id, COUNT(r.id))
             FROM ParticipationRequest r
             WHERE r.event.id IN :eventIds AND  r.status = :status
@@ -19,5 +19,5 @@ public interface RequestRepository extends JpaRepository<ParticipationRequest, L
             """)
     List<ConfirmedRequestsCount> countRequestsCountByEventIds(@Param("eventIds") List<Long> eventIds,
                                                               @Param("status") RequestStatus status);
-                                                               верни на место Сахар*/
+
 }

@@ -171,9 +171,8 @@ public class EventServiceImpl implements EventService {
     private Map<Long, Long> getConReqByEventMap(List<Event> events) {
         List<Long> eventIds = events.stream().map(Event::getId).toList();
 
-        //List<ConfirmedRequestsCount> confirmedRequestsCounts = requestRepository.countRequestsCountByEventIds(eventIds, RequestStatus.CONFIRMED);
-        List<ConfirmedRequestsCount> confirmedRequestsCounts = Collections.emptyList();
-        //тут замена временная чтоб докер нормально запустился, не забудь поправить потом, Сахарный
+        List<ConfirmedRequestsCount> confirmedRequestsCounts = requestRepository.countRequestsCountByEventIds(eventIds, RequestStatus.CONFIRMED);
+
         return confirmedRequestsCounts.stream()
                 .collect(Collectors.toMap(
                         ConfirmedRequestsCount::eventId,
