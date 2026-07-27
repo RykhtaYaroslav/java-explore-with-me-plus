@@ -61,7 +61,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional(readOnly = true)
     public List<CategoryDto> getCategories(Pageable pageable) {
         return categoryRepository.findAll(pageable).stream()
-                .map(mapper::toDto)
+                .map(mapper::toCategoryDtoOut)
                 .collect(Collectors.toList());
     }
 
@@ -70,6 +70,6 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDto getCategoryById(Long catId) {
         Category category = categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Категория с id = " + catId + " не найдена!"));
-        return mapper.toDto(category);
+        return mapper.toCategoryDtoOut(category);
     }
 }
