@@ -25,6 +25,6 @@ CREATE TABLE IF NOT EXISTS events (
     published_on TIMESTAMP WITHOUT TIME ZONE,
     request_moderation BOOLEAN NOT NULL DEFAULT TRUE,
     state VARCHAR(20) NOT NULL,
-    CONSTRAINT fk_events_categories FOREIGN KEY (category_id) REFERENCES categories (id)
-    CONSTRAINR fk_events_users FOREIGN KEY REFERENCES users (id)
+    CONSTRAINT fk_events_categories FOREIGN KEY (category_id) REFERENCES categories (id),
+    CONSTRAINT fk_events_users FOREIGN KEY (initiator_id) REFERENCES users (id)
 );
