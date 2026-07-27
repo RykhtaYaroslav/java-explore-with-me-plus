@@ -2,10 +2,12 @@ package ru.practicum.main.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
-import lombok.Getter;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class NewUserRequest {
     @Email(message = "Неверный формат почты")
     @NotBlank(message = "Почта не может быть пустой")

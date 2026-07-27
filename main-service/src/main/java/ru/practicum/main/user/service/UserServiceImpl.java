@@ -23,24 +23,24 @@ public class UserServiceImpl implements UserService {
     public List<UserDto> getUsers(List<Long> ids, int from, int size) {
         if (ids == null) {
             return userRepository.getUsersWithoutIds(from, size).stream()
-                    .map(mapper::toDto)
+                    .map(mapper::toUserDtoOut)
                     .toList();
         }
         //По тз непонятно будут ли передаваться id юзеров которых нет(хотя ответа 404 нет в спецификации)
         //Но лучше всего сделать проверку на null
         return userRepository.findAllById(ids).stream()
                 .filter(Objects::nonNull)
-                .map(mapper::toDto)
+                .map(mapper::toUserDtoOut)
                 .toList();
     }
 
     @Override
     public UserDto createUser(NewUserRequest newUser) {
-        if (userRepository.findCountUserFromSelectEmail(newUser.getEmail()) != 0) {
+        if (userRepository.existsByEmail(newUser.getEmail())) {
             throw new ConflictException("Юзер с данным email = " + newUser.getEmail() + " уже существует");
         }
-        User user = mapper.toEntity(newUser);
-        return mapper.toDto(userRepository.save(user));
+        User user = mapper.toUser(newUser);
+        return mapper.toUserDtoOut(userRepository.save(user));
     }
 
     @Override

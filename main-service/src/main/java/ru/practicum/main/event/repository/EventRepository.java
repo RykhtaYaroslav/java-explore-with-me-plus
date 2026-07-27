@@ -25,4 +25,5 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     Optional<Event> findByIdAndInitiatorId(Long id, Long initiatorId);
     @Query("select count(e) from Event e where e.category.id = :catId")
     long countEventBySelectCategory(@Param("catId") long catId);
+    boolean existsByCategoryId(Long categoryId);
 }

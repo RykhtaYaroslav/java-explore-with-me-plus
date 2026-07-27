@@ -28,14 +28,14 @@ public class CategoryServiceImpl implements CategoryService {
         if (categoryRepository.findByName(category.getName()) != null) {
             throw new ConflictException("Данная категория уже существует!");
         }
-        Category ct = mapper.toEntity(category);
-        return mapper.toDto(categoryRepository.save(ct));
+        Category ct = mapper.toCategory(category);
+        return mapper.toCategoryDtoOut(categoryRepository.save(ct));
     }
 
     @Override
     public void deleteCategory(Long catId) {
         checkAndReturnCategory(catId);
-        if (eventRepository.countEventBySelectCategory(catId) != 0L) {
+        if (eventRepository.existsByCategoryId(catId)) {
             throw new ConflictException("Категория еще используется каким-то событием!");
         }
         categoryRepository.deleteById(catId);
@@ -43,12 +43,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto updateCategory(CategoryDto category, long catId) {
+        Category ct = checkAndReturnCategory(catId);
         if (categoryRepository.findByName(category.getName()) != null) {
             throw new ConflictException("Данная категория уже существует!");
         }
-        Category ct = checkAndReturnCategory(catId);
         ct.setName(category.getName());
-        return mapper.toDto(categoryRepository.save(ct));
+        return mapper.toCategoryDtoOut(categoryRepository.save(ct));
     }
 
     private Category checkAndReturnCategory(long catId) {

@@ -12,6 +12,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> getUsersWithoutIds(@Param("from") int from,
                                   @Param("size") int size);
 
-    @Query("select count(u) from User u where u.email = :email")
-    int findCountUserFromSelectEmail(@Param("email") String email);
+    boolean existsByEmail(String email);
 }
