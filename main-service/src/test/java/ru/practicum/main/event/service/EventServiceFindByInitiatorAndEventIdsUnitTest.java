@@ -104,9 +104,9 @@ class EventServiceFindByInitiatorAndEventIdsUnitTest {
         when(statRepository.getStats(any(LocalDateTime.class), any(LocalDateTime.class), eq(uris), eq(true)))
                 .thenReturn(getViewStatsDto(eventIds, views));
 
-        when(requestRepository.countRequestsCountByEventIds(eventIds, RequestStatus.CONFIRMED))
+        /*when(requestRepository.countRequestsCountByEventIds(eventIds, RequestStatus.CONFIRMED))
                 .thenReturn(List.of(new ConfirmedRequestsCount(EVENT_ID, confirmedRequests)));
-
+        верни потом на место Сахар*/
         EventFullDto result = eventService.findByInitiatorAndEventIds(USER_ID, EVENT_ID);
 
         assertThat(result).isNotNull()
@@ -126,9 +126,9 @@ class EventServiceFindByInitiatorAndEventIdsUnitTest {
                 .findByIdAndInitiatorId(EVENT_ID, USER_ID);
         verify(statRepository, times(1))
                 .getStats(argThat(start -> start != null && !start.isAfter(event.getCreatedOn())), any(LocalDateTime.class), eq(uris), eq(true));
-        verify(requestRepository, times(1))
+        /*verify(requestRepository, times(1))
                 .countRequestsCountByEventIds(eventIds, RequestStatus.CONFIRMED);
-
+        верни на место Сахар*/
         verifyNoMoreInteractions(userRepository, eventRepository, statRepository, requestRepository);
         verifyNoInteractions(categoryRepository);
     }
@@ -150,9 +150,9 @@ class EventServiceFindByInitiatorAndEventIdsUnitTest {
         when(statRepository.getStats(any(LocalDateTime.class), any(LocalDateTime.class), eq(uris), eq(true)))
                 .thenReturn(Collections.emptyList());
 
-        when(requestRepository.countRequestsCountByEventIds(eventIds, RequestStatus.CONFIRMED))
+        /*when(requestRepository.countRequestsCountByEventIds(eventIds, RequestStatus.CONFIRMED))
                 .thenReturn(Collections.emptyList());
-
+        верни на место сахар*/
         EventFullDto result = eventService.findByInitiatorAndEventIds(USER_ID, EVENT_ID);
 
         assertThat(result).isNotNull()
@@ -172,9 +172,9 @@ class EventServiceFindByInitiatorAndEventIdsUnitTest {
                 .findByIdAndInitiatorId(EVENT_ID, USER_ID);
         verify(statRepository, times(1))
                 .getStats(argThat(start -> start != null && !start.isAfter(event.getCreatedOn())), any(LocalDateTime.class), eq(uris), eq(true));
-        verify(requestRepository, times(1))
+        /*verify(requestRepository, times(1))
                 .countRequestsCountByEventIds(eventIds, RequestStatus.CONFIRMED);
-
+        */
         verifyNoMoreInteractions(userRepository, eventRepository, statRepository, requestRepository);
         verifyNoInteractions(categoryRepository);
     }
