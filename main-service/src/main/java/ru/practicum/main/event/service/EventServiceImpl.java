@@ -17,6 +17,9 @@ import ru.practicum.main.event.repository.EventRepository;
 import ru.practicum.main.exception.EventUpdateException;
 import ru.practicum.main.exception.NotFoundException;
 import ru.practicum.main.request.dto.ConfirmedRequestsCount;
+import ru.practicum.main.request.dto.ParticipationRequestDto;
+import ru.practicum.main.request.dto.mapper.RequestMapper;
+import ru.practicum.main.request.model.ParticipationRequest;
 import ru.practicum.main.request.model.RequestStatus;
 import ru.practicum.main.request.repository.RequestRepository;
 import ru.practicum.main.user.model.User;
@@ -45,6 +48,7 @@ public class EventServiceImpl implements EventService {
     private final StatsClient statsRepository;
 
     private final EventMapper eventMapper;
+    private final RequestMapper requestMapper;
 
     @Override
     public EventFullDto create(Long userId, NewEventDto newEventDto) {
@@ -130,6 +134,20 @@ public class EventServiceImpl implements EventService {
         Map<Long, Long> confirmedRequests = getConReqByEventMap(events);
 
         return eventMapper.toFullDto(event, views.getOrDefault(eventId, 0L), confirmedRequests.getOrDefault(eventId, 0L));
+    }
+
+    @Override
+    public List<ParticipationRequestDto> getEventRequestsByInitiator(Long userId, Long eventId) {
+        getUser(userId); // only for user existence checking
+        getEventByIdAndInitiator(userId, eventId); // Validate event by user and throws exception if no access
+
+        List<ParticipationRequest> requests = requestRepository.findAllByEventId(eventId);
+
+        if ((requests.isEmpty())) {
+            return Collections.emptyList();
+        }
+
+        return requests.stream().map(requestMapper::toDtoOut).toList();
     }
 
     /**

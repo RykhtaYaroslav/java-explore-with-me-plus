@@ -20,6 +20,7 @@ import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.NewEventDto;
 import ru.practicum.main.event.dto.UpdateEventUserRequest;
 import ru.practicum.main.event.service.EventService;
+import ru.practicum.main.request.dto.ParticipationRequestDto;
 
 import java.util.List;
 
@@ -53,5 +54,10 @@ public class PrivateEventController {
     @PatchMapping("/{eventId}")
     public EventFullDto updateEventByInitiator(@RequestBody @Valid UpdateEventUserRequest request, @PathVariable @Positive Long userId, @PathVariable @Positive Long eventId) {
         return eventService.updateEventByInitiator(request, userId, eventId);
+    }
+
+    @GetMapping("/{eventId}/requests")
+    public List<ParticipationRequestDto> getEventRequestsByInitiator(@PathVariable @Positive Long userId, @PathVariable @Positive Long eventId) {
+        return eventService.getEventRequestsByInitiator(userId, eventId);
     }
 }

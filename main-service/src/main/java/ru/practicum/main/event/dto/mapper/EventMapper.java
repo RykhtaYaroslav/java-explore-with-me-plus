@@ -18,7 +18,6 @@ import ru.practicum.main.user.model.User;
 import java.time.LocalDateTime;
 
 @Mapper(componentModel = "spring", imports = LocalDateTime.class)
-@SuppressWarnings("unused")
 public interface EventMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "publishedOn", ignore = true)
