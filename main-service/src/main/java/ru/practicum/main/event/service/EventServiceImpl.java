@@ -136,16 +136,24 @@ public class EventServiceImpl implements EventService {
         return eventMapper.toFullDto(event, views.getOrDefault(eventId, 0L), confirmedRequests.getOrDefault(eventId, 0L));
     }
 
+    /**
+     * Retrieves all participation requests submitted for a specific event.
+     * <p>
+     * Validates that the requesting user exists and is the registered initiator of the event
+     * before fetching the associated participation requests.
+     * </p>
+     *
+     * @param userId  the unique identifier of the event initiator
+     * @param eventId the unique identifier of the target event
+     * @return a {@link List} of {@link ParticipationRequestDto} representing the participation requests for the event
+     * @throws NotFoundException if the user or event does not exist, or if the event does not belong to the user
+     */
     @Override
     public List<ParticipationRequestDto> getEventRequestsByInitiator(Long userId, Long eventId) {
         getUser(userId); // only for user existence checking
         getEventByIdAndInitiator(userId, eventId); // Validate event by user and throws exception if no access
 
         List<ParticipationRequest> requests = requestRepository.findAllByEventId(eventId);
-
-        if ((requests.isEmpty())) {
-            return Collections.emptyList();
-        }
 
         return requests.stream().map(requestMapper::toDtoOut).toList();
     }
