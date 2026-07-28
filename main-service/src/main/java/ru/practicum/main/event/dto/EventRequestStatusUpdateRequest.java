@@ -1,4 +1,4 @@
-package ru.practicum.main.event.dto.user;
+package ru.practicum.main.event.dto;
 
 public class EventRequestStatusUpdateRequest {
 }

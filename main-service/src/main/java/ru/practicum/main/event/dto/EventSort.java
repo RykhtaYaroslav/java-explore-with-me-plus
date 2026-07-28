@@ -1,4 +1,4 @@
-package ru.practicum.main.event.dto.publicapi;
+package ru.practicum.main.event.dto;
 
 public enum EventSort {
     EVENT_DATE, //сортировка по дате проведения события

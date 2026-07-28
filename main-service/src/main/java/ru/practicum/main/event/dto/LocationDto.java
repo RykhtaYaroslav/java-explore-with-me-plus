@@ -1,4 +1,4 @@
-package ru.practicum.main.category.dto;
+package ru.practicum.main.event.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CategoryDto {
-    private Long id;
-    private String name;
+public class LocationDto {
+
+    private Double lon;
+    private Double lat;
 }
