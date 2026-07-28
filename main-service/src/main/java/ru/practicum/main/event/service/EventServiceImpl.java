@@ -75,7 +75,7 @@ public class EventServiceImpl implements EventService {
     /**
      * Retrieves full details of a specific event created by a specific initiator.
      *
-     * @param userId the unique identifier of the event initiator
+     * @param userId  the unique identifier of the event initiator
      * @param eventId the unique identifier of the requested event
      * @return the populated {@link EventFullDto} with views and confirmed requests
      * @throws NotFoundException if user or event does not exist, or event does not belong to the user
@@ -199,7 +199,7 @@ public class EventServiceImpl implements EventService {
     /**
      * Retrieves an {@link Event} entity by its ID and ensures it belongs to the specified initiator.
      *
-     * @param userId the unique identifier of the event initiator
+     * @param userId  the unique identifier of the event initiator
      * @param eventId the unique identifier of the event to fetch
      * @return the found {@link Event} entity
      * @throws NotFoundException if the event does not exist or does not belong to the specified user

@@ -44,37 +44,29 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class EventServiceFindByInitiatorIdUnitTest {
+    private static final Long USER_ID = 100L;
+    private static final Long FIRST_EVENT_ID = 1L;
+    private static final Long SECOND_EVENT_ID = 2L;
     @Mock
     private EventRepository eventRepository;
-
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private CategoryRepository categoryRepository;
-
     @Mock
     private RequestRepository requestRepository;
-
     @Mock
     private StatsClient statRepository;
-
     // MapStruct warns against using Mappers.getMapper() for Spring-managed mappers.
     // Suppressed here because factory instantiation is required to spy on the real mapper in unit tests without loading the Spring context.
     @Spy
     @SuppressWarnings("all")
     private EventMapper eventMapper = Mappers.getMapper(EventMapper.class);
-
     @InjectMocks
     private EventServiceImpl eventService;
-
     private User user;
     private Event firstEvent;
     private Event secondEvent;
-
-    private static final Long USER_ID = 100L;
-    private static final Long FIRST_EVENT_ID = 1L;
-    private static final Long SECOND_EVENT_ID = 2L;
 
     @BeforeEach
     void setUp() {
@@ -99,7 +91,7 @@ class EventServiceFindByInitiatorIdUnitTest {
     void shouldReturnListOfShortDtoByInitiatorId() {
         List<Event> events = List.of(firstEvent, secondEvent);
         List<Long> eventIds = List.of(FIRST_EVENT_ID, SECOND_EVENT_ID);
-        List<String> uris = eventIds.stream().map( id -> String.format("/events/%d", id)).toList();
+        List<String> uris = eventIds.stream().map(id -> String.format("/events/%d", id)).toList();
 
         Long views = 999L;
 
@@ -155,7 +147,7 @@ class EventServiceFindByInitiatorIdUnitTest {
     void shouldReturnZeroViewsAndRequestsWhenStatsEmpty() {
         List<Event> events = List.of(firstEvent, secondEvent);
         List<Long> eventIds = List.of(FIRST_EVENT_ID, SECOND_EVENT_ID);
-        List<String> uris = eventIds.stream().map( id -> String.format("/events/%d", id)).toList();
+        List<String> uris = eventIds.stream().map(id -> String.format("/events/%d", id)).toList();
 
         when(userRepository.findById(USER_ID))
                 .thenReturn(Optional.of(user));

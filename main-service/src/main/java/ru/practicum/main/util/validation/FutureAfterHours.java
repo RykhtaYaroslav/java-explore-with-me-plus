@@ -10,8 +10,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Documented
-@Constraint(validatedBy = FutureAfterHoursValidator.class) // Класс содержащий логику
-@Target({ElementType.FIELD, ElementType.PARAMETER}) // Можно ставить над полями и параметрами
+@Constraint(validatedBy = FutureAfterHoursValidator.class)
+// Класс содержащий логику
+@Target({ElementType.FIELD, ElementType.PARAMETER})
+// Можно ставить над полями и параметрами
 @Retention(RetentionPolicy.RUNTIME) // Аннотация доступна во время выполнения
 @SuppressWarnings("unused")
 public @interface FutureAfterHours {

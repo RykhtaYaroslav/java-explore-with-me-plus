@@ -1,6 +1,7 @@
 package ru.practicum.main.category.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main.category.dto.CategoryDto;
@@ -12,7 +13,6 @@ import ru.practicum.main.event.repository.EventRepository;
 import ru.practicum.main.exception.ConflictException;
 import ru.practicum.main.exception.NotFoundException;
 
-import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,8 +53,8 @@ public class CategoryServiceImpl implements CategoryService {
 
     private Category checkAndReturnCategory(long catId) {
         return categoryRepository.findById(catId).orElseThrow(() ->
-            new NotFoundException("Категория с id = " + catId + " не найдена!"));
-        }
+                new NotFoundException("Категория с id = " + catId + " не найдена!"));
+    }
 
 
     @Override

@@ -44,35 +44,27 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class EventServiceFindByInitiatorAndEventIdsUnitTest {
+    private static final Long USER_ID = 100L;
+    private static final Long EVENT_ID = 1L;
     @Mock
     private EventRepository eventRepository;
-
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private CategoryRepository categoryRepository;
-
     @Mock
     private RequestRepository requestRepository;
-
     @Mock
     private StatsClient statRepository;
-
     // MapStruct warns against using Mappers.getMapper() for Spring-managed mappers.
     // Suppressed here because factory instantiation is required to spy on the real mapper in unit tests without loading the Spring context.
     @Spy
     @SuppressWarnings("all")
     private EventMapper eventMapper = Mappers.getMapper(EventMapper.class);
-
     @InjectMocks
     private EventServiceImpl eventService;
-
     private User user;
     private Event event;
-
-    private static final Long USER_ID = 100L;
-    private static final Long EVENT_ID = 1L;
 
     @BeforeEach
     void setUp() {

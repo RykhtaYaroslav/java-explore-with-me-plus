@@ -11,5 +11,6 @@ package ru.practicum.main.request.dto;
  * @param eventId the unique identifier of the target event
  * @param count   the total number of participation requests for the specified event and request status
  */
-public record ConfirmedRequestsCount(Long eventId, Long count) {}
+public record ConfirmedRequestsCount(Long eventId, Long count) {
+}
 // DTO for extracting confirmed requests from RequestRepository for eventServiceImpl
