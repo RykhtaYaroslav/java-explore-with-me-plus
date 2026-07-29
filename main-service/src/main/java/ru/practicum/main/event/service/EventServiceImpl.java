@@ -417,6 +417,13 @@ public class EventServiceImpl implements EventService {
         return rejected;
     }
 
+    /**
+     * Validates whether the event requires request moderation and if the participant limit has been reached.
+     *
+     * @param event the {@link Event} entity to check
+     * @return the current number of confirmed participation requests for the event
+     * @throws EventUpdateException if moderation is disabled, participant limit is 0, or the limit is reached
+     */
     private Long getConfirmedRequestsAmountOrThrow(Event event) {
         Integer limit = event.getParticipantLimit();
         Long eventId = event.getId();
@@ -437,6 +444,13 @@ public class EventServiceImpl implements EventService {
         return confReq;
     }
 
+
+    /**
+     * Ensures that all specified participation requests are in the {@link RequestStatus#PENDING} status.
+     *
+     * @param participationRequests the list of {@link ParticipationRequest} entities to validate
+     * @throws EventUpdateException if any request status is not {@link RequestStatus#PENDING}
+     */
     private void checkStatusIsPendingOrThrow(List<ParticipationRequest> participationRequests) {
         participationRequests.forEach(request -> {
             if (!request.getStatus().equals(RequestStatus.PENDING)) {
@@ -446,6 +460,20 @@ public class EventServiceImpl implements EventService {
         });
     }
 
+
+    /**
+     * Processes the confirmation of participation requests while respecting the event's participant limit.
+     * <p>
+     * Requests are confirmed up to the maximum limit. Any excess requests within the current batch
+     * or remaining pending requests in the database are automatically rejected.
+     * </p>
+     *
+     * @param incomingRequestDto    the DTO containing the list of request IDs to process
+     * @param event                 the target {@link Event} entity
+     * @param participationRequests the list of fetched {@link ParticipationRequest} entities to update
+     * @param confReq               the current number of confirmed requests prior to this update
+     * @return an {@link EventRequestStatusUpdateResult} containing DTO lists of confirmed and rejected requests
+     */
     private EventRequestStatusUpdateResult processConfirmationWithLimit(EventRequestStatusUpdateRequest incomingRequestDto, Event event, List<ParticipationRequest> participationRequests, Long confReq) {
         Long eventId = event.getId();
         final int limit = event.getParticipantLimit();
@@ -459,10 +487,10 @@ public class EventServiceImpl implements EventService {
             participationRequests.forEach(request -> request.setStatus(RequestStatus.CONFIRMED));
             newConfirmedRequests.addAll(participationRequests);
 
-            if (confReqAfterUpdate < limit) {
-                rejectedRequests = Collections.emptyList();
-            } else {
+            if (confReqAfterUpdate == limit) {
                 rejectedRequests = rejectAllOtherPendingRequests(incomingRequestDto, eventId);
+            } else {
+                rejectedRequests = Collections.emptyList();
             }
 
         } else {
@@ -502,6 +530,13 @@ public class EventServiceImpl implements EventService {
         return getEventRequestStatusUpdateResult(participationRequests, Collections.emptyList());
     }
 
+    /**
+     * Maps lists of rejected and confirmed request entities into an {@link EventRequestStatusUpdateResult} DTO.
+     *
+     * @param rejectedRequests     the list of rejected {@link ParticipationRequest} entities
+     * @param newConfirmedRequests the list of confirmed {@link ParticipationRequest} entities
+     * @return the constructed {@link EventRequestStatusUpdateResult} DTO
+     */
     private EventRequestStatusUpdateResult getEventRequestStatusUpdateResult(List<ParticipationRequest> rejectedRequests, List<ParticipationRequest> newConfirmedRequests) {
         List<ParticipationRequestDto> rejectedDto = rejectedRequests.stream()
                 .map(requestMapper::toDtoOut)
