@@ -21,6 +21,7 @@ public interface RequestRepository extends JpaRepository<ParticipationRequest, L
                                                               @Param("status") RequestStatus status);
 
     List<ParticipationRequest> findAllByEventId(Long eventId);
+
     List<ParticipationRequest> findAllByRequesterId(Long requesterId);
 
     boolean existsByEventIdAndRequesterId(Long eventId, Long requesterId);
