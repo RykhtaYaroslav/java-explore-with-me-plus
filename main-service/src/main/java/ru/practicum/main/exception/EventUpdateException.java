@@ -10,5 +10,12 @@ public class EventUpdateException extends RuntimeException {
     public EventUpdateException(String message, String fieldName, Object rejectedValue) {
         super(message);
         this.fieldName = fieldName;
-        this.rejectedValue = rejectedValue;    }
+        this.rejectedValue = rejectedValue;
+    }
+
+    public EventUpdateException(String message) {
+        super(message);
+        this.fieldName = null;
+        this.rejectedValue = null;
+    }
 }
