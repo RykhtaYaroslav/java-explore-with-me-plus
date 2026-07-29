@@ -6,6 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main.category.model.Category;
 import ru.practicum.main.category.repository.CategoryRepository;
 import ru.practicum.main.event.dto.EventFullDto;
+import ru.practicum.main.event.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.main.event.dto.EventRequestStatusUpdateResult;
 import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.NewEventDto;
 import ru.practicum.main.event.dto.StateActionUser;
@@ -28,10 +30,13 @@ import ru.practicum.stats.client.StatsClient;
 import ru.practicum.stats.dto.ViewStatsDto;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.time.LocalDateTime.now;
@@ -148,6 +153,7 @@ public class EventServiceImpl implements EventService {
      * @return a {@link List} of {@link ParticipationRequestDto} representing the participation requests for the event
      * @throws NotFoundException if the user or event does not exist, or if the event does not belong to the user
      */
+    @Transactional(readOnly = true)
     @Override
     public List<ParticipationRequestDto> getEventRequestsByInitiator(Long userId, Long eventId) {
         getUser(userId); // only for user existence checking
@@ -156,6 +162,29 @@ public class EventServiceImpl implements EventService {
         List<ParticipationRequest> requests = requestRepository.findAllByEventId(eventId);
 
         return requests.stream().map(requestMapper::toDtoOut).toList();
+    }
+
+    @Override
+    public EventRequestStatusUpdateResult changeRequestsStatus(Long userId, Long eventId, EventRequestStatusUpdateRequest incomingRequestDto) {
+        Event event = getEventByIdAndInitiator(userId, eventId); // Validate event by user and throws exception if no access
+        Long confReq = getConfirmedRequestsAmountOrThrow(event); // throws exception if no need to confirm or limit has reached
+        List<ParticipationRequest> participationRequests = getRequestsIfExistOrThrow(incomingRequestDto); //returns list of requests or throw exception if not found by id
+
+        checkStatusIsPendingOrThrow(participationRequests);
+
+        RequestStatus newStatus = incomingRequestDto.getStatus();
+
+        EventRequestStatusUpdateResult result;
+
+        switch (newStatus) {
+            case CONFIRMED ->
+                    result = processConfirmationWithLimit(incomingRequestDto, event, participationRequests, confReq);
+            case REJECTED -> result = processRejecting(participationRequests);
+            default -> throw new EventUpdateException(
+                    String.format("Unsupported status action: %s", newStatus));
+        }
+
+        return result;
     }
 
     /**
@@ -338,5 +367,153 @@ public class EventServiceImpl implements EventService {
             case SEND_TO_REVIEW -> event.setState(EventState.PENDING);
             case null, default -> {/*Do nothing*/}
         }
+    }
+
+    /**
+     * Retrieves all participation requests specified in the status update request.
+     * <p>
+     * Validates that every participation request ID provided in the request exists in the database.
+     * If one or more requested IDs are missing, a {@link NotFoundException} is thrown to ensure
+     * atomic processing.
+     * </p>
+     *
+     * @param incomingRequestDto the request DTO containing the list of participation request IDs to update
+     * @return a {@link List} of found {@link ParticipationRequest} entities
+     * @throws NotFoundException if any of the specified request IDs are not found in the database
+     */
+    private List<ParticipationRequest> getRequestsIfExistOrThrow(EventRequestStatusUpdateRequest incomingRequestDto) {
+        List<Long> requestIds = incomingRequestDto.getRequestsIds();
+        Set<Long> uniqueIds = new HashSet<>(requestIds);
+        List<ParticipationRequest> participationRequests = requestRepository.findAllById(uniqueIds);
+
+        if (participationRequests.size() != uniqueIds.size()) {
+            String message = String.format("Some requests were not found among IDs: %s", requestIds);
+            throw new NotFoundException(message);
+        }
+
+        return participationRequests;
+    }
+
+    /**
+     * Rejects all remaining pending participation requests for a given event, excluding those
+     * already specified in the incoming status update request.
+     *
+     * @param incomingRequestDto the DTO containing the list of request IDs currently being processed
+     * @param eventId            the unique identifier of the event
+     * @return a {@link List} of newly rejected {@link ParticipationRequest} entities
+     */
+    private List<ParticipationRequest> rejectAllOtherPendingRequests(EventRequestStatusUpdateRequest incomingRequestDto, Long eventId) {
+        List<ParticipationRequest> allRequests = requestRepository.findAllByEventId(eventId);
+
+        Set<Long> requestsIds = new HashSet<>(incomingRequestDto.getRequestsIds());
+
+        List<ParticipationRequest> rejected = allRequests.stream()
+                .filter(request -> request.getStatus() == RequestStatus.PENDING)
+                .filter(request -> !requestsIds.contains(request.getId()))
+                .toList();
+
+        rejected.forEach(request -> request.setStatus(RequestStatus.REJECTED));
+
+        return rejected;
+    }
+
+    private Long getConfirmedRequestsAmountOrThrow(Event event) {
+        Integer limit = event.getParticipantLimit();
+        Long eventId = event.getId();
+
+        if (limit == 0 || !event.getRequestModeration()) {
+            throw new EventUpdateException("Confirmation is not required for events with 0 limit or disabled moderation");
+        }
+
+        List<Event> events = List.of(event);
+        Map<Long, Long> confirmedRequests = getConReqByEventMap(events);
+        Long confReq = confirmedRequests.getOrDefault(eventId, 0L);
+
+        if (confReq == limit.longValue()) {
+            String message = String.format("The participant limit has been reached for event id = %d", eventId);
+            throw new EventUpdateException(message);
+        }
+
+        return confReq;
+    }
+
+    private void checkStatusIsPendingOrThrow(List<ParticipationRequest> participationRequests) {
+        participationRequests.forEach(request -> {
+            if (!request.getStatus().equals(RequestStatus.PENDING)) {
+                String message = String.format("Confirmation is required only for events (id = %d) with PENDING status", request.getId());
+                throw new EventUpdateException(message);
+            }
+        });
+    }
+
+    private EventRequestStatusUpdateResult processConfirmationWithLimit(EventRequestStatusUpdateRequest incomingRequestDto, Event event, List<ParticipationRequest> participationRequests, Long confReq) {
+        Long eventId = event.getId();
+        final int limit = event.getParticipantLimit();
+        final int updateAmount = participationRequests.size();
+        final long confReqAfterUpdate = confReq + updateAmount;
+
+        List<ParticipationRequest> rejectedRequests;
+        List<ParticipationRequest> newConfirmedRequests = new ArrayList<>();
+
+        if (confReqAfterUpdate <= limit) {
+            participationRequests.forEach(request -> request.setStatus(RequestStatus.CONFIRMED));
+            newConfirmedRequests.addAll(participationRequests);
+
+            if (confReqAfterUpdate < limit) {
+                rejectedRequests = Collections.emptyList();
+            } else {
+                rejectedRequests = rejectAllOtherPendingRequests(incomingRequestDto, eventId);
+            }
+
+        } else {
+            rejectedRequests = new ArrayList<>(rejectAllOtherPendingRequests(incomingRequestDto, eventId));
+
+            for (ParticipationRequest pR : participationRequests) {
+                if (confReq < limit) {
+                    pR.setStatus(RequestStatus.CONFIRMED);
+                    newConfirmedRequests.add(pR);
+                    confReq++;
+                } else {
+                    pR.setStatus(RequestStatus.REJECTED);
+                    rejectedRequests.add(pR);
+                }
+            }
+        }
+
+        requestRepository.saveAll(participationRequests);
+        if (!rejectedRequests.isEmpty()) {
+            requestRepository.saveAll(rejectedRequests);
+        }
+
+        return getEventRequestStatusUpdateResult(rejectedRequests, newConfirmedRequests);
+    }
+
+    /**
+     * Processes explicit rejection of the specified participation requests.
+     *
+     * @param participationRequests the list of target requests to reject
+     * @return an {@link EventRequestStatusUpdateResult} containing the rejected request DTOs
+     */
+    private EventRequestStatusUpdateResult processRejecting(List<ParticipationRequest> participationRequests) {
+        participationRequests.forEach(request -> request.setStatus(RequestStatus.REJECTED));
+
+        requestRepository.saveAll(participationRequests);
+
+        return getEventRequestStatusUpdateResult(participationRequests, Collections.emptyList());
+    }
+
+    private EventRequestStatusUpdateResult getEventRequestStatusUpdateResult(List<ParticipationRequest> rejectedRequests, List<ParticipationRequest> newConfirmedRequests) {
+        List<ParticipationRequestDto> rejectedDto = rejectedRequests.stream()
+                .map(requestMapper::toDtoOut)
+                .toList();
+
+        List<ParticipationRequestDto> newConfirmedDto = newConfirmedRequests.stream()
+                .map(requestMapper::toDtoOut)
+                .toList();
+
+        return EventRequestStatusUpdateResult.builder()
+                .rejectedRequests(rejectedDto)
+                .confirmedRequests(newConfirmedDto)
+                .build();
     }
 }

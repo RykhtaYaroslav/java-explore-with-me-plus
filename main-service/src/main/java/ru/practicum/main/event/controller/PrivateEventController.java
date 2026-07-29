@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.main.event.dto.EventFullDto;
+import ru.practicum.main.event.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.main.event.dto.EventRequestStatusUpdateResult;
 import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.NewEventDto;
 import ru.practicum.main.event.dto.UpdateEventUserRequest;
@@ -59,5 +61,10 @@ public class PrivateEventController {
     @GetMapping("/{eventId}/requests")
     public List<ParticipationRequestDto> getEventRequestsByInitiator(@PathVariable @Positive Long userId, @PathVariable @Positive Long eventId) {
         return eventService.getEventRequestsByInitiator(userId, eventId);
+    }
+
+    @PatchMapping("/{eventId}/requests")
+    public EventRequestStatusUpdateResult changeRequestsStatus(@PathVariable @Positive Long userId, @PathVariable @Positive Long eventId, @RequestBody EventRequestStatusUpdateRequest request) {
+        return eventService.changeRequestsStatus(userId, eventId, request);
     }
 }

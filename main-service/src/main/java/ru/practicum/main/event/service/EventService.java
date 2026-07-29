@@ -1,8 +1,8 @@
 package ru.practicum.main.event.service;
 
-import jakarta.validation.constraints.Positive;
-import org.springframework.web.bind.annotation.PathVariable;
 import ru.practicum.main.event.dto.EventFullDto;
+import ru.practicum.main.event.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.main.event.dto.EventRequestStatusUpdateResult;
 import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.NewEventDto;
 import ru.practicum.main.event.dto.UpdateEventUserRequest;
@@ -20,4 +20,6 @@ public interface EventService {
     EventFullDto updateEventByInitiator(UpdateEventUserRequest request, Long userId, Long eventId);
 
     List<ParticipationRequestDto> getEventRequestsByInitiator(Long userId, Long eventId);
+
+    EventRequestStatusUpdateResult changeRequestsStatus(Long userId, Long eventId, EventRequestStatusUpdateRequest request);
 }
