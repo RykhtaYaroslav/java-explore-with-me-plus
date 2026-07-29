@@ -8,7 +8,7 @@ import ru.practicum.main.event.repository.EventRepository;
 import ru.practicum.main.exception.ConflictException;
 import ru.practicum.main.exception.NotFoundException;
 import ru.practicum.main.request.dto.ParticipationRequestDto;
-import ru.practicum.main.request.dto.RequestMapper;
+import ru.practicum.main.request.dto.mapper.RequestMapper;
 import ru.practicum.main.request.model.ParticipationRequest;
 import ru.practicum.main.request.model.RequestStatus;
 import ru.practicum.main.request.repository.RequestRepository;
@@ -35,7 +35,7 @@ public class RequestServiceImpl implements RequestService {
         }
 
         return requestRepository.findAllByRequesterId(userId).stream()
-                .map(requestMapper::toDto)
+                .map(requestMapper::toDtoOut)
                 .collect(Collectors.toList());
     }
 
@@ -85,7 +85,7 @@ public class RequestServiceImpl implements RequestService {
                 .build();
 
         ParticipationRequest savedRequest = requestRepository.save(request);
-        return requestMapper.toDto(savedRequest);
+        return requestMapper.toDtoOut(savedRequest);
     }
 
 
@@ -103,7 +103,7 @@ public class RequestServiceImpl implements RequestService {
         request.setStatus(RequestStatus.CANCELED);
 
         ParticipationRequest savedRequest = requestRepository.save(request);
-        return requestMapper.toDto(savedRequest);
+        return requestMapper.toDtoOut(savedRequest);
     }
 
 }

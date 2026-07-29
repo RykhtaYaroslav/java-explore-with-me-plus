@@ -16,18 +16,22 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.proxy.HibernateProxy;
 import ru.practicum.main.event.model.Event;
 import ru.practicum.main.user.model.User;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
-@Entity
-@Table(name = "requests")
 @Getter
 @Setter
+@ToString(exclude = {"requester", "event"})
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "requests")
 public class ParticipationRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,6 +49,28 @@ public class ParticipationRequest {
     private User requester;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
+    @Column(name = "status", nullable = false)
     private RequestStatus status;
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null) {
+            return false;
+        }
+        Class<?> objectEffectiveClass = o instanceof HibernateProxy proxy ? proxy.getHibernateLazyInitializer().getPersistentClass() : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy proxy ? proxy.getHibernateLazyInitializer().getPersistentClass() : this.getClass();
+        if (thisEffectiveClass != objectEffectiveClass) {
+            return false;
+        }
+        ParticipationRequest that = (ParticipationRequest) o;
+        return getId() != null && Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy proxy ? proxy.getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
+    }
 }

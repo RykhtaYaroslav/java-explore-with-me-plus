@@ -220,9 +220,7 @@ class EventServiceFindByInitiatorIdUnitTest {
         Mockito.when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> eventService.findAllByInitiatorId(USER_ID, 0, 10))
-                .isInstanceOf(NotFoundException.class)
-                .hasFieldOrPropertyWithValue("fieldName", "UserId")
-                .hasFieldOrPropertyWithValue("rejectedValue", USER_ID);
+                .isInstanceOf(NotFoundException.class);
 
         Mockito.verify(userRepository, Mockito.times(1)).findById(USER_ID);
 

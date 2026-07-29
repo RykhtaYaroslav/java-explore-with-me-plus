@@ -13,7 +13,7 @@ import ru.practicum.main.event.model.EventState;
 import ru.practicum.main.event.repository.EventRepository;
 import ru.practicum.main.exception.ConflictException;
 import ru.practicum.main.request.dto.ParticipationRequestDto;
-import ru.practicum.main.request.dto.RequestMapper;
+import ru.practicum.main.request.dto.mapper.RequestMapper;
 import ru.practicum.main.request.model.ParticipationRequest;
 import ru.practicum.main.request.model.RequestStatus;
 import ru.practicum.main.request.repository.RequestRepository;
@@ -80,8 +80,8 @@ class RequestServiceImplTest {
         assertNotNull(result);
         assertEquals(100L, result.getId());
         assertEquals(RequestStatus.CONFIRMED, result.getStatus());
-        assertEquals(1L, result.getRequester());
-        assertEquals(10L, result.getEvent());
+        assertEquals(1L, result.getRequesterId());
+        assertEquals(10L, result.getEventId());
     }
 
     @Test
