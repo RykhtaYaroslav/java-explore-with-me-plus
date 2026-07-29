@@ -102,9 +102,7 @@ class EventServiceCreateUnitTest {
         Mockito.when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> eventService.create(USER_ID, newEventDto))
-                .isInstanceOf(NotFoundException.class)
-                .hasFieldOrPropertyWithValue("fieldName", "UserId")
-                .hasFieldOrPropertyWithValue("rejectedValue", USER_ID);
+                .isInstanceOf(NotFoundException.class);
 
         Mockito.verify(userRepository, Mockito.times(1)).findById(USER_ID);
 
@@ -119,9 +117,7 @@ class EventServiceCreateUnitTest {
         Mockito.when(categoryRepository.findById(CATEGORY_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> eventService.create(USER_ID, newEventDto))
-                .isInstanceOf(NotFoundException.class)
-                .hasFieldOrPropertyWithValue("fieldName", "CategoryId")
-                .hasFieldOrPropertyWithValue("rejectedValue", CATEGORY_ID);
+                .isInstanceOf(NotFoundException.class);
 
         Mockito.verify(userRepository, Mockito.times(1)).findById(USER_ID);
         Mockito.verify(categoryRepository, Mockito.times(1)).findById(CATEGORY_ID);

@@ -11,4 +11,4 @@ public interface RequestMapper {
     @Mapping(target = "eventId", source = "requestEntity.event.id")
     @Mapping(target = "requesterId", source = "requestEntity.requester.id")
     ParticipationRequestDto toDtoOut(ParticipationRequest requestEntity);
-    }
+}

@@ -1,4 +1,4 @@
 package ru.practicum.main.category.service;
 
-public class CategoryServiceImpl implements CategoryService{
+public class CategoryServiceImpl implements CategoryService {
 }

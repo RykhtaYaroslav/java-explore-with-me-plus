@@ -61,7 +61,7 @@ public class EventServiceImpl implements EventService {
 
         Long categoryId = newEventDto.getCategoryId();
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFoundException((String.format("Category with id = %d not found", categoryId)), "CategoryId", categoryId));
+                .orElseThrow(() -> new NotFoundException((String.format("Category with id = %d not found", categoryId))));
 
         Event event = eventMapper.toEntity(newEventDto, initiator, category);
 
@@ -196,7 +196,7 @@ public class EventServiceImpl implements EventService {
      */
     private User getUser(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(String.format("User with id = %d not found", userId), "UserId", userId));
+                .orElseThrow(() -> new NotFoundException(String.format("User with id = %d not found", userId)));
     }
 
     /**
@@ -299,8 +299,7 @@ public class EventServiceImpl implements EventService {
     private Event getEventByIdAndInitiator(Long userId, Long eventId) {
         return eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException(
-                        String.format("Event with id = %d not found for user with id = %d", eventId, userId),
-                        "EventId", eventId));
+                        String.format("Event with id = %d not found for user with id = %d", eventId, userId)));
     }
 
     /**
@@ -323,17 +322,13 @@ public class EventServiceImpl implements EventService {
 
         if (event.getState() == EventState.PUBLISHED) {
             String message = String.format("Event with id = %d cannot be updated because its status is PUBLISHED", eventId);
-            throw new EventUpdateException(message, "State", event.getState());
+            throw new EventUpdateException(message);
         }
 
         LocalDateTime deadline = now().plusHours(2);
         if (event.getEventDate().isBefore(deadline) && ((request.getEventDate() == null) || request.getEventDate().isBefore(deadline))) {
             String message = String.format("Event with id = %d cannot be updated because event date %s is less than 2 hours from now", eventId, event.getEventDate().format(DATE_TIME_FORMATTER));
-            throw new EventUpdateException(
-                    message,
-                    "EventDate",
-                    event.getEventDate()
-            );
+            throw new EventUpdateException(message);
         }
         return event;
     }
@@ -353,11 +348,8 @@ public class EventServiceImpl implements EventService {
         eventMapper.updateEventFromUserDto(request, event);
 
         if (request.getCategoryId() != null) {
-            Category newCategory = categoryRepository.findById(request.getCategoryId()).orElseThrow(() -> new NotFoundException(
-                    String.format("Category with id = %d was not found", request.getCategoryId()),
-                    "CategoryId",
-                    request.getCategoryId()
-            ));
+            Category newCategory = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new NotFoundException(String.format("Category with id = %d was not found", request.getCategoryId())));
             event.setCategory(newCategory);
         }
         StateActionUser stateActionUser = request.getStateAction();

@@ -231,13 +231,8 @@ class EventServiceUpdateEventByInitiatorUnitTest {
 
         when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
 
-        NotFoundException exception = assertThrows(
-                NotFoundException.class,
-                () -> eventService.updateEventByInitiator(request, USER_ID, EVENT_ID)
-        );
+        assertThrows(NotFoundException.class, () -> eventService.updateEventByInitiator(request, USER_ID, EVENT_ID));
 
-        assertEquals("UserId", exception.getFieldName());
-        assertEquals(USER_ID, exception.getRejectedValue());
         verify(eventRepository, never()).save(any());
     }
 
@@ -249,13 +244,11 @@ class EventServiceUpdateEventByInitiatorUnitTest {
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
         when(eventRepository.findByIdAndInitiatorId(EVENT_ID, USER_ID)).thenReturn(Optional.empty());
 
-        NotFoundException exception = assertThrows(
+        assertThrows(
                 NotFoundException.class,
                 () -> eventService.updateEventByInitiator(request, USER_ID, EVENT_ID)
         );
 
-        assertEquals("EventId", exception.getFieldName());
-        assertEquals(EVENT_ID, exception.getRejectedValue());
         verify(eventRepository, never()).save(any());
     }
 
@@ -267,13 +260,11 @@ class EventServiceUpdateEventByInitiatorUnitTest {
 
         mockCommonValidations();
 
-        EventUpdateException exception = assertThrows(
+        assertThrows(
                 EventUpdateException.class,
                 () -> eventService.updateEventByInitiator(request, USER_ID, EVENT_ID)
         );
 
-        assertEquals("State", exception.getFieldName());
-        assertEquals(EventState.PUBLISHED, exception.getRejectedValue());
         verify(eventRepository, never()).save(any());
     }
 
@@ -286,13 +277,11 @@ class EventServiceUpdateEventByInitiatorUnitTest {
 
         mockCommonValidations();
 
-        EventUpdateException exception = assertThrows(
+        assertThrows(
                 EventUpdateException.class,
                 () -> eventService.updateEventByInitiator(request, USER_ID, EVENT_ID)
         );
 
-        assertEquals("EventDate", exception.getFieldName());
-        assertEquals(expiredDate, exception.getRejectedValue());
         verify(eventRepository, never()).save(any());
     }
 
@@ -306,13 +295,11 @@ class EventServiceUpdateEventByInitiatorUnitTest {
         mockCommonValidations();
         when(categoryRepository.findById(NEW_CATEGORY_ID)).thenReturn(Optional.empty());
 
-        NotFoundException exception = assertThrows(
+        assertThrows(
                 NotFoundException.class,
                 () -> eventService.updateEventByInitiator(request, USER_ID, EVENT_ID)
         );
 
-        assertEquals("CategoryId", exception.getFieldName());
-        assertEquals(NEW_CATEGORY_ID, exception.getRejectedValue());
         verify(eventRepository, never()).save(any());
     }
 
