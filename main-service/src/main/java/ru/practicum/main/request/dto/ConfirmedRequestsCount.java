@@ -1,5 +1,6 @@
 package ru.practicum.main.request.dto;
 
+
 /**
  * Projection DTO used to encapsulate the total count of participation requests associated with a specific event.
  * <p>

@@ -33,37 +33,29 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
 class EventServiceCreateUnitTest {
+    private static final Long USER_ID = 100L;
+    private static final Long CATEGORY_ID = 10L;
+    private static final Long EVENT_ID = 1L;
     @Mock
     private EventRepository eventRepository;
-
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private CategoryRepository categoryRepository;
-
     @Mock
     private RequestRepository requestRepository;
-
     @Mock
     private StatsClient statRepository;
-
     // MapStruct warns against using Mappers.getMapper() for Spring-managed mappers.
     // Suppressed here because factory instantiation is required to spy on the real mapper in unit tests without loading the Spring context.
     @Spy
     @SuppressWarnings("all")
     private EventMapper eventMapper = Mappers.getMapper(EventMapper.class);
-
     @InjectMocks
     private EventServiceImpl eventService;
-
     private User user;
     private Category category;
     private NewEventDto newEventDto;
-
-    private static final Long USER_ID = 100L;
-    private static final Long CATEGORY_ID = 10L;
-    private static final Long EVENT_ID = 1L;
 
     @Test
     @DisplayName("Успешное создание нового ивента из DTO со всеми полями")
