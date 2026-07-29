@@ -56,7 +56,6 @@ public class CategoryServiceImpl implements CategoryService {
                 new NotFoundException("Категория с id = " + catId + " не найдена!"));
     }
 
-
     @Override
     @Transactional(readOnly = true)
     public List<CategoryDto> getCategories(Pageable pageable) {
