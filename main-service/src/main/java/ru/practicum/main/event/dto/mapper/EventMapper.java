@@ -1,12 +1,16 @@
 package ru.practicum.main.event.dto.mapper;
 
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import ru.practicum.main.category.model.Category;
 import ru.practicum.main.event.dto.EventFullDto;
 import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.LocationDto;
 import ru.practicum.main.event.dto.NewEventDto;
+import ru.practicum.main.event.dto.UpdateEventUserRequest;
 import ru.practicum.main.event.model.Event;
 import ru.practicum.main.event.model.Location;
 import ru.practicum.main.user.model.User;
@@ -14,7 +18,6 @@ import ru.practicum.main.user.model.User;
 import java.time.LocalDateTime;
 
 @Mapper(componentModel = "spring", imports = LocalDateTime.class)
-@SuppressWarnings("unused")
 public interface EventMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "publishedOn", ignore = true)
@@ -28,4 +31,13 @@ public interface EventMapper {
     EventFullDto toFullDto(Event event, Long views, Long confirmedRequests);
 
     EventShortDto toShortDto(Event event, Long views, Long confirmedRequests);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdOn", ignore = true)
+    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "initiator", ignore = true)
+    @Mapping(target = "publishedOn", ignore = true)
+    @Mapping(target = "state", ignore = true)
+    void updateEventFromUserDto(UpdateEventUserRequest request, @MappingTarget Event event);
 }
