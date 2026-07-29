@@ -14,10 +14,15 @@ public interface RequestRepository extends JpaRepository<ParticipationRequest, L
     @Query("""
             SELECT new ru.practicum.main.request.dto.ConfirmedRequestsCount(r.event.id, COUNT(r.id))
             FROM ParticipationRequest r
-            WHERE r.event.id IN :eventIds AND  r.status = :status
+            WHERE r.event.id IN :eventIds AND  r.status = :status   
             GROUP BY r.event.id
             """)
     List<ConfirmedRequestsCount> countRequestsCountByEventIds(@Param("eventIds") List<Long> eventIds,
                                                               @Param("status") RequestStatus status);
 
+    List<ParticipationRequest> findAllByRequesterId(Long requesterId);
+
+    boolean existsByEventIdAndRequesterId(Long eventId, Long requesterId);
+
+    long countByEventIdAndStatus(Long eventId, RequestStatus status);
 }
