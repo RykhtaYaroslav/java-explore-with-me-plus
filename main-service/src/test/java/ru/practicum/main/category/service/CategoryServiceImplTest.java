@@ -51,6 +51,8 @@ class CategoryServiceImplTest {
         assertNotNull(result);
         assertEquals(1L, result.getId());
         assertEquals("Выставки", result.getName());
+
+        Mockito.verify(categoryRepository, Mockito.times(1)).findById(1L);
     }
 
     @Test
@@ -63,6 +65,8 @@ class CategoryServiceImplTest {
         });
 
         assertEquals("Категория с id = 99 не найдена!", exception.getMessage());
+
+        Mockito.verify(categoryRepository, Mockito.times(1)).findById(99L);
     }
 
     @Test
@@ -82,5 +86,7 @@ class CategoryServiceImplTest {
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("Выставки", result.get(0).getName());
+
+        Mockito.verify(categoryRepository, Mockito.times(1)).findAll(pageable);
     }
 }
