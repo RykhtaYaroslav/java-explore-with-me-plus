@@ -11,31 +11,27 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.main.category.dto.CategoryDto;
 import ru.practicum.main.category.repository.CategoryRepository;
 import ru.practicum.main.event.dto.EventFullDto;
 import ru.practicum.main.event.dto.mapper.EventMapper;
 import ru.practicum.main.event.model.Event;
 import ru.practicum.main.event.repository.EventRepository;
+import ru.practicum.main.event.service.EventStatsCollector;
 import ru.practicum.main.exception.NotFoundException;
-import ru.practicum.main.request.dto.ConfirmedRequestsCount;
-import ru.practicum.main.request.model.RequestStatus;
 import ru.practicum.main.request.repository.RequestRepository;
+import ru.practicum.main.user.dto.UserShortDto;
 import ru.practicum.main.user.model.User;
 import ru.practicum.main.user.repository.UserRepository;
 import ru.practicum.main.util.TestDataUtils;
 import ru.practicum.stats.client.StatsClient;
-import ru.practicum.stats.dto.ViewStatsDto;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -46,6 +42,7 @@ import static org.mockito.Mockito.when;
 class EventServicePrivateFindByInitiatorAndEventIdsUnitTest {
     private static final Long USER_ID = 100L;
     private static final Long EVENT_ID = 1L;
+
     @Mock
     private EventRepository eventRepository;
     @Mock
@@ -55,14 +52,17 @@ class EventServicePrivateFindByInitiatorAndEventIdsUnitTest {
     @Mock
     private RequestRepository requestRepository;
     @Mock
-    private StatsClient statRepository;
-    // MapStruct warns against using Mappers.getMapper() for Spring-managed mappers.
-    // Suppressed here because factory instantiation is required to spy on the real mapper in unit tests without loading the Spring context.
+    private StatsClient statsRepository;
+    @Mock
+    private EventStatsCollector eventStatsCollector;
+
     @Spy
     @SuppressWarnings("all")
     private EventMapper eventMapper = Mappers.getMapper(EventMapper.class);
+
     @InjectMocks
     private EventServicePrivateImpl eventService;
+
     private User user;
     private Event event;
 
@@ -82,93 +82,63 @@ class EventServicePrivateFindByInitiatorAndEventIdsUnitTest {
     @Test
     @DisplayName("Успешный возврат события со всеми данными")
     void shouldReturnEventFullDtoWithAllData() {
-        List<Long> eventIds = List.of(EVENT_ID);
-        List<String> uris = eventIds.stream().map(id -> String.format("/events/%d", id)).toList();
-        Long views = 999L;
-        Long confirmedRequests = 1L;
+        EventFullDto expectedDto = EventFullDto.builder()
+                .id(EVENT_ID)
+                .title(event.getTitle())
+                .annotation(event.getAnnotation())
+                .paid(event.getPaid())
+                .eventDate(event.getEventDate())
+                .category(CategoryDto.builder().id(event.getCategory().getId()).build())
+                .initiator(UserShortDto.builder().id(USER_ID).build())
+                .views(999L)
+                .confirmedRequests(1L)
+                .build();
 
-        when(userRepository.findById(USER_ID))
-                .thenReturn(Optional.of(user));
-
-        when(eventRepository.findByIdAndInitiatorId(EVENT_ID, USER_ID))
-                .thenReturn(Optional.of(event));
-
-        when(statRepository.getStats(any(LocalDateTime.class), any(LocalDateTime.class), eq(uris), eq(true)))
-                .thenReturn(getViewStatsDto(eventIds, views));
-
-        when(requestRepository.countRequestsCountByEventIds(eventIds, RequestStatus.CONFIRMED))
-                .thenReturn(List.of(new ConfirmedRequestsCount(EVENT_ID, confirmedRequests)));
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(eventRepository.findByIdAndInitiatorId(EVENT_ID, USER_ID)).thenReturn(Optional.of(event));
+        when(eventStatsCollector.getFullDtoListWithStats(List.of(event))).thenReturn(List.of(expectedDto));
 
         EventFullDto result = eventService.findByInitiatorAndEventIds(USER_ID, EVENT_ID);
 
-        assertThat(result).isNotNull()
-                .returns(EVENT_ID, EventFullDto::getId)
-                .returns(event.getTitle(), EventFullDto::getTitle)
-                .returns(event.getAnnotation(), EventFullDto::getAnnotation)
-                .returns(event.getPaid(), EventFullDto::getPaid)
-                .returns(event.getEventDate(), EventFullDto::getEventDate)
-                .returns(event.getCategory().getId(), dto -> dto.getCategory().getId())
-                .returns(event.getInitiator().getId(), dto -> dto.getInitiator().getId())
-                .returns(views, EventFullDto::getViews)
-                .returns(confirmedRequests, EventFullDto::getConfirmedRequests);
+        assertThat(result).isNotNull().isEqualTo(expectedDto);
 
-        verify(userRepository, times(1))
-                .findById(USER_ID);
-        verify(eventRepository, times(1))
-                .findByIdAndInitiatorId(EVENT_ID, USER_ID);
-        verify(statRepository, times(1))
-                .getStats(argThat(start -> start != null && !start.isAfter(event.getCreatedOn())), any(LocalDateTime.class), eq(uris), eq(true));
-        verify(requestRepository, times(1))
-                .countRequestsCountByEventIds(eventIds, RequestStatus.CONFIRMED);
+        verify(userRepository, times(1)).findById(USER_ID);
+        verify(eventRepository, times(1)).findByIdAndInitiatorId(EVENT_ID, USER_ID);
+        verify(eventStatsCollector, times(1)).getFullDtoListWithStats(List.of(event));
 
-        verifyNoMoreInteractions(userRepository, eventRepository, statRepository, requestRepository);
-        verifyNoInteractions(categoryRepository);
+        verifyNoMoreInteractions(userRepository, eventRepository, eventStatsCollector);
+        verifyNoInteractions(categoryRepository, statsRepository, requestRepository);
     }
 
     @Test
     @DisplayName("Успешный возврат события с нулевой статистикой")
     void shouldReturnEventWithZeroStatistics() {
-        List<Long> eventIds = List.of(EVENT_ID);
-        List<String> uris = eventIds.stream().map(id -> String.format("/events/%d", id)).toList();
-        Long views = 0L;
-        Long confirmedRequests = 0L;
+        EventFullDto expectedDto = EventFullDto.builder()
+                .id(EVENT_ID)
+                .title(event.getTitle())
+                .annotation(event.getAnnotation())
+                .paid(event.getPaid())
+                .eventDate(event.getEventDate())
+                .category(CategoryDto.builder().id(event.getCategory().getId()).build())
+                .initiator(UserShortDto.builder().id(USER_ID).build())
+                .views(0L)
+                .confirmedRequests(0L)
+                .build();
 
-        when(userRepository.findById(USER_ID))
-                .thenReturn(Optional.of(user));
-
-        when(eventRepository.findByIdAndInitiatorId(EVENT_ID, USER_ID))
-                .thenReturn(Optional.of(event));
-
-        when(statRepository.getStats(any(LocalDateTime.class), any(LocalDateTime.class), eq(uris), eq(true)))
-                .thenReturn(Collections.emptyList());
-
-        when(requestRepository.countRequestsCountByEventIds(eventIds, RequestStatus.CONFIRMED))
-                .thenReturn(Collections.emptyList());
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(eventRepository.findByIdAndInitiatorId(EVENT_ID, USER_ID)).thenReturn(Optional.of(event));
+        when(eventStatsCollector.getFullDtoListWithStats(List.of(event))).thenReturn(List.of(expectedDto));
 
         EventFullDto result = eventService.findByInitiatorAndEventIds(USER_ID, EVENT_ID);
 
-        assertThat(result).isNotNull()
-                .returns(EVENT_ID, EventFullDto::getId)
-                .returns(event.getTitle(), EventFullDto::getTitle)
-                .returns(event.getAnnotation(), EventFullDto::getAnnotation)
-                .returns(event.getPaid(), EventFullDto::getPaid)
-                .returns(event.getEventDate(), EventFullDto::getEventDate)
-                .returns(event.getCategory().getId(), dto -> dto.getCategory().getId())
-                .returns(event.getInitiator().getId(), dto -> dto.getInitiator().getId())
-                .returns(views, EventFullDto::getViews)
-                .returns(confirmedRequests, EventFullDto::getConfirmedRequests);
+        assertThat(result).isNotNull().isEqualTo(expectedDto);
 
-        verify(userRepository, times(1))
-                .findById(USER_ID);
-        verify(eventRepository, times(1))
-                .findByIdAndInitiatorId(EVENT_ID, USER_ID);
-        verify(statRepository, times(1))
-                .getStats(argThat(start -> start != null && !start.isAfter(event.getCreatedOn())), any(LocalDateTime.class), eq(uris), eq(true));
-        verify(requestRepository, times(1))
-                .countRequestsCountByEventIds(eventIds, RequestStatus.CONFIRMED);
+        verify(userRepository, times(1)).findById(USER_ID);
+        verify(eventRepository, times(1)).findByIdAndInitiatorId(EVENT_ID, USER_ID);
+        verify(eventStatsCollector, times(1)).getFullDtoListWithStats(List.of(event));
 
-        verifyNoMoreInteractions(userRepository, eventRepository, statRepository, requestRepository);
-        verifyNoInteractions(categoryRepository);
+        verifyNoMoreInteractions(userRepository, eventRepository, eventStatsCollector);
+        verifyNoInteractions(categoryRepository, statsRepository, requestRepository);
     }
 
     @Test
@@ -182,17 +152,14 @@ class EventServicePrivateFindByInitiatorAndEventIdsUnitTest {
         verify(userRepository, times(1)).findById(USER_ID);
 
         verifyNoMoreInteractions(userRepository);
-        verifyNoInteractions(eventRepository, categoryRepository, statRepository, requestRepository);
+        verifyNoInteractions(eventRepository, categoryRepository, statsRepository, requestRepository, eventStatsCollector);
     }
 
     @Test
     @DisplayName("NotFoundException если у пользователя не найден ивент")
     void shouldThrowNotFoundExceptionWhenUserHasNoSuchEvent() {
-        when(userRepository.findById(USER_ID))
-                .thenReturn(Optional.of(user));
-
-        when(eventRepository.findByIdAndInitiatorId(EVENT_ID, USER_ID))
-                .thenReturn(Optional.empty());
+        when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
+        when(eventRepository.findByIdAndInitiatorId(EVENT_ID, USER_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> eventService.findByInitiatorAndEventIds(USER_ID, EVENT_ID))
                 .isInstanceOf(NotFoundException.class);
@@ -200,12 +167,7 @@ class EventServicePrivateFindByInitiatorAndEventIdsUnitTest {
         verify(userRepository, times(1)).findById(USER_ID);
         verify(eventRepository, times(1)).findByIdAndInitiatorId(EVENT_ID, USER_ID);
 
-
         verifyNoMoreInteractions(userRepository, eventRepository);
-        verifyNoInteractions(categoryRepository, statRepository, requestRepository);
-    }
-
-    private List<ViewStatsDto> getViewStatsDto(List<Long> eventIds, Long views) {
-        return eventIds.stream().map(id -> String.format("/events/%d", id)).map(uri -> new ViewStatsDto("ewm", uri, views)).toList();
+        verifyNoInteractions(categoryRepository, statsRepository, requestRepository, eventStatsCollector);
     }
 }

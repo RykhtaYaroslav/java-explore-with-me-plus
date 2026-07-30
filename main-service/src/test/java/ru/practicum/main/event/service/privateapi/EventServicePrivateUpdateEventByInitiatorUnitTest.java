@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.main.category.dto.CategoryDto;
 import ru.practicum.main.category.model.Category;
 import ru.practicum.main.category.repository.CategoryRepository;
 import ru.practicum.main.event.dto.EventFullDto;
@@ -19,16 +20,14 @@ import ru.practicum.main.event.dto.mapper.EventMapper;
 import ru.practicum.main.event.model.Event;
 import ru.practicum.main.event.model.EventState;
 import ru.practicum.main.event.repository.EventRepository;
+import ru.practicum.main.event.service.EventStatsCollector;
 import ru.practicum.main.exception.EventUpdateException;
 import ru.practicum.main.exception.NotFoundException;
-import ru.practicum.main.request.dto.ConfirmedRequestsCount;
-import ru.practicum.main.request.model.RequestStatus;
 import ru.practicum.main.request.repository.RequestRepository;
 import ru.practicum.main.user.model.User;
 import ru.practicum.main.user.repository.UserRepository;
 import ru.practicum.main.util.TestDataUtils;
 import ru.practicum.stats.client.StatsClient;
-import ru.practicum.stats.dto.ViewStatsDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -49,21 +47,17 @@ class EventServicePrivateUpdateEventByInitiatorUnitTest {
 
     @Mock
     private EventRepository eventRepository;
-
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private CategoryRepository categoryRepository;
-
     @Mock
     private RequestRepository requestRepository;
-
     @Mock
-    private StatsClient statRepository;
+    private StatsClient statsRepository;
+    @Mock
+    private EventStatsCollector eventStatsCollector;
 
-    // MapStruct warns against using Mappers.getMapper() for Spring-managed mappers.
-    // Suppressed here because factory instantiation is required to spy on the real mapper in unit tests without loading the Spring context.
     @Spy
     @SuppressWarnings("all")
     private EventMapper eventMapper = Mappers.getMapper(EventMapper.class);
@@ -109,8 +103,8 @@ class EventServicePrivateUpdateEventByInitiatorUnitTest {
         request.setStateAction(StateActionUser.CANCEL_REVIEW);
 
         mockCommonValidations();
-        mockStatsAndRequests();
         when(categoryRepository.findById(NEW_CATEGORY_ID)).thenReturn(Optional.of(category));
+        mockStatsCollector();
 
         EventFullDto result = eventService.updateEventByInitiator(request, USER_ID, EVENT_ID);
 
@@ -138,7 +132,7 @@ class EventServicePrivateUpdateEventByInitiatorUnitTest {
         EventState originalState = event.getState();
 
         mockCommonValidations();
-        mockStatsAndRequests();
+        mockStatsCollector();
 
         EventFullDto result = eventService.updateEventByInitiator(request, USER_ID, EVENT_ID);
 
@@ -162,7 +156,7 @@ class EventServicePrivateUpdateEventByInitiatorUnitTest {
         String originalDescription = event.getDescription();
 
         mockCommonValidations();
-        mockStatsAndRequests();
+        mockStatsCollector();
 
         EventFullDto result = eventService.updateEventByInitiator(request, USER_ID, EVENT_ID);
 
@@ -181,8 +175,8 @@ class EventServicePrivateUpdateEventByInitiatorUnitTest {
                 .build();
 
         mockCommonValidations();
-        mockStatsAndRequests();
         when(categoryRepository.findById(NEW_CATEGORY_ID)).thenReturn(Optional.of(category));
+        mockStatsCollector();
 
         EventFullDto result = eventService.updateEventByInitiator(request, USER_ID, EVENT_ID);
 
@@ -199,7 +193,7 @@ class EventServicePrivateUpdateEventByInitiatorUnitTest {
                 .build();
 
         mockCommonValidations();
-        mockStatsAndRequests();
+        mockStatsCollector();
 
         EventFullDto result = eventService.updateEventByInitiator(request, USER_ID, EVENT_ID);
 
@@ -209,7 +203,7 @@ class EventServicePrivateUpdateEventByInitiatorUnitTest {
     @Test
     @DisplayName("Успешное обновление даты, если старая дата < 2 часов, но передана новая валидная дата")
     void shouldAllowUpdateWhenOldDateExpiredButNewDateIsValid() {
-        event.setEventDate(LocalDateTime.now().plusHours(1)); // Старая дата поджала (< 2 часов)
+        event.setEventDate(LocalDateTime.now().plusHours(1));
         LocalDateTime validNewDate = LocalDateTime.now().plusDays(3);
 
         UpdateEventUserRequest request = UpdateEventUserRequest.builder()
@@ -217,7 +211,7 @@ class EventServicePrivateUpdateEventByInitiatorUnitTest {
                 .build();
 
         mockCommonValidations();
-        mockStatsAndRequests();
+        mockStatsCollector();
 
         EventFullDto result = eventService.updateEventByInitiator(request, USER_ID, EVENT_ID);
 
@@ -228,11 +222,9 @@ class EventServicePrivateUpdateEventByInitiatorUnitTest {
     @DisplayName("Исключение NotFoundException, если пользователь не найден")
     void shouldThrowNotFoundExceptionWhenUserDoesNotExist() {
         UpdateEventUserRequest request = new UpdateEventUserRequest();
-
         when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> eventService.updateEventByInitiator(request, USER_ID, EVENT_ID));
-
         verify(eventRepository, never()).save(any());
     }
 
@@ -240,15 +232,10 @@ class EventServicePrivateUpdateEventByInitiatorUnitTest {
     @DisplayName("Исключение NotFoundException, если событие не найдено или не принадлежит пользователю")
     void shouldThrowNotFoundExceptionWhenEventDoesNotExistOrNotOwned() {
         UpdateEventUserRequest request = new UpdateEventUserRequest();
-
         when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
         when(eventRepository.findByIdAndInitiatorId(EVENT_ID, USER_ID)).thenReturn(Optional.empty());
 
-        assertThrows(
-                NotFoundException.class,
-                () -> eventService.updateEventByInitiator(request, USER_ID, EVENT_ID)
-        );
-
+        assertThrows(NotFoundException.class, () -> eventService.updateEventByInitiator(request, USER_ID, EVENT_ID));
         verify(eventRepository, never()).save(any());
     }
 
@@ -257,31 +244,20 @@ class EventServicePrivateUpdateEventByInitiatorUnitTest {
     void shouldThrowEventUpdateExceptionWhenEventIsPublished() {
         event.setState(EventState.PUBLISHED);
         UpdateEventUserRequest request = new UpdateEventUserRequest();
-
         mockCommonValidations();
 
-        assertThrows(
-                EventUpdateException.class,
-                () -> eventService.updateEventByInitiator(request, USER_ID, EVENT_ID)
-        );
-
+        assertThrows(EventUpdateException.class, () -> eventService.updateEventByInitiator(request, USER_ID, EVENT_ID));
         verify(eventRepository, never()).save(any());
     }
 
     @Test
     @DisplayName("Исключение EventUpdateException, если старая дата < 2 часов и в DTO не передали новую дату")
     void shouldThrowEventUpdateExceptionWhenOldDateIsWithinTwoHoursAndNoNewDate() {
-        LocalDateTime expiredDate = LocalDateTime.now().plusHours(1);
-        event.setEventDate(expiredDate);
-        UpdateEventUserRequest request = new UpdateEventUserRequest(); // new date is null
-
+        event.setEventDate(LocalDateTime.now().plusHours(1));
+        UpdateEventUserRequest request = new UpdateEventUserRequest();
         mockCommonValidations();
 
-        assertThrows(
-                EventUpdateException.class,
-                () -> eventService.updateEventByInitiator(request, USER_ID, EVENT_ID)
-        );
-
+        assertThrows(EventUpdateException.class, () -> eventService.updateEventByInitiator(request, USER_ID, EVENT_ID));
         verify(eventRepository, never()).save(any());
     }
 
@@ -295,11 +271,7 @@ class EventServicePrivateUpdateEventByInitiatorUnitTest {
         mockCommonValidations();
         when(categoryRepository.findById(NEW_CATEGORY_ID)).thenReturn(Optional.empty());
 
-        assertThrows(
-                NotFoundException.class,
-                () -> eventService.updateEventByInitiator(request, USER_ID, EVENT_ID)
-        );
-
+        assertThrows(NotFoundException.class, () -> eventService.updateEventByInitiator(request, USER_ID, EVENT_ID));
         verify(eventRepository, never()).save(any());
     }
 
@@ -308,19 +280,21 @@ class EventServicePrivateUpdateEventByInitiatorUnitTest {
         when(eventRepository.findByIdAndInitiatorId(EVENT_ID, USER_ID)).thenReturn(Optional.of(event));
     }
 
-    private void mockStatsAndRequests() {
-        List<Long> eventIds = List.of(EVENT_ID);
-
-        when(statRepository.getStats(any(LocalDateTime.class), any(LocalDateTime.class), any(), anyBoolean()))
-                .thenReturn(getViewStatsDto(eventIds, VIEWS));
-        when(requestRepository.countRequestsCountByEventIds(eventIds, RequestStatus.CONFIRMED))
-                .thenReturn(List.of(new ConfirmedRequestsCount(EVENT_ID, CONFIRMED_REQUESTS)));
-    }
-
-    private List<ViewStatsDto> getViewStatsDto(List<Long> eventIds, Long views) {
-        return eventIds.stream()
-                .map(id -> String.format("/events/%d", id))
-                .map(uri -> new ViewStatsDto("ewm", uri, views))
-                .toList();
+    private void mockStatsCollector() {
+        when(eventStatsCollector.getFullDtoListWithStats(any())).thenAnswer(invocation -> {
+            List<Event> events = invocation.getArgument(0);
+            Event ev = events.getFirst();
+            return List.of(EventFullDto.builder()
+                    .id(ev.getId())
+                    .title(ev.getTitle())
+                    .annotation(ev.getAnnotation())
+                    .description(ev.getDescription())
+                    .category(CategoryDto.builder().id(ev.getCategory().getId()).build())
+                    .state(ev.getState())
+                    .eventDate(ev.getEventDate())
+                    .views(VIEWS)
+                    .confirmedRequests(CONFIRMED_REQUESTS)
+                    .build());
+        });
     }
 }
