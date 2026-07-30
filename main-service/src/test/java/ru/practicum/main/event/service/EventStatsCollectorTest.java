@@ -44,7 +44,7 @@ class EventStatsCollectorTest {
     private EventMapper eventMapper;
 
     @InjectMocks
-    private EventStatsCollector statsCollector;
+    private EventStatsCollectorImpl statsCollector;
 
     private Event event1;
     private Event event2;
@@ -182,8 +182,18 @@ class EventStatsCollectorTest {
     @Test
     @DisplayName("extractIdFromUri: корректный парсинг числового ID из конца строки URI")
     void extractIdFromUri_shouldExtractLongId() {
-        Long id = statsCollector.extractIdFromUri("/events/42");
-        assertEquals(42L, id);
+        Event testEvent = Event.builder()
+                .id(10L)
+                .createdOn(LocalDateTime.now().minusDays(1))
+                .build();
+
+        when(statsRepository.getStats(any(), any(), any(), eq(true)))
+                .thenReturn(List.of(new ViewStatsDto("main-service", "/events/10", 100L)));
+
+        Map<Long, Long> result = statsCollector.getViewsByEventMap(List.of(testEvent));
+
+        assertThat(result)
+                .containsEntry(10L, 100L);
     }
 
     @Test
