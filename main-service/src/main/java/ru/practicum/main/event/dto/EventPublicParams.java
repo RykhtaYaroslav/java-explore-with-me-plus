@@ -12,9 +12,4 @@ public record EventPublicParams(String text,
                                 EventSort sort,
                                 int from,
                                 int size) {
-    public EventPublicParams {
-        if (rangeStart == null && rangeEnd == null) {
-            rangeStart = LocalDateTime.now();
-        }
-    }
 }

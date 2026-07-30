@@ -66,7 +66,7 @@ public class EventStatsCollectorImpl implements EventStatsCollector {
         return viewStatsDto.stream()
                 .collect(Collectors.toMap(
                         dto -> extractIdFromUri(dto.getUri()),
-                        ViewStatsDto::getHits,
+                        dto -> dto.getHits() != null ? dto.getHits() : 0L,
                         Long::max
                 ));
 

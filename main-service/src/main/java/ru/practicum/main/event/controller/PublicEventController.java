@@ -39,7 +39,11 @@ public class PublicEventController {
                                                 @RequestParam(required = false, defaultValue = "0") @PositiveOrZero(message = "Query parameter \"from\" must be positive or zero") Integer from,
                                                 @RequestParam(required = false, defaultValue = "10") @Positive(message = "Query parameter \"size\" must be positive") Integer size,
                                                 HttpServletRequest request) {
-        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
+        if (rangeStart == null ) {
+            rangeStart = LocalDateTime.now();
+        }
+
+        if (rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
             throw new BadRequestException("Start date cannot be after end date");
         }
 
