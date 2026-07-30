@@ -3,6 +3,7 @@ package ru.practicum.main.request.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.main.event.model.Event;
 import ru.practicum.main.event.model.EventState;
 import ru.practicum.main.event.repository.EventRepository;
 import ru.practicum.main.exception.ConflictException;
@@ -12,6 +13,7 @@ import ru.practicum.main.request.dto.mapper.RequestMapper;
 import ru.practicum.main.request.model.ParticipationRequest;
 import ru.practicum.main.request.model.RequestStatus;
 import ru.practicum.main.request.repository.RequestRepository;
+import ru.practicum.main.user.model.User;
 import ru.practicum.main.user.repository.UserRepository;
 
 import java.util.List;
@@ -43,10 +45,10 @@ public class RequestServiceImpl implements RequestService {
     @Transactional
     public ParticipationRequestDto createRequest(Long userId, Long eventId) {
 
-        ru.practicum.main.user.model.User requester = userRepository.findById(userId)
+        User requester = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id = " + userId + " не найден!"));
 
-        ru.practicum.main.event.model.Event event = eventRepository.findById(eventId)
+        Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие с id = " + eventId + " не найдено!"));
 
         if (requestRepository.existsByEventIdAndRequesterId(eventId, userId)) {
@@ -61,20 +63,17 @@ public class RequestServiceImpl implements RequestService {
             throw new ConflictException("Нельзя подать заявку на неопубликованное событие!");
         }
 
-        if (event.getParticipantLimit() > 0) {
+        RequestStatus startStatus = RequestStatus.PENDING;
+
+        if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
+            startStatus = RequestStatus.CONFIRMED;
+        } else {
 
             long confirmedCount = requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
 
             if (confirmedCount >= event.getParticipantLimit()) {
-
                 throw new ConflictException("На это событие больше нет свободных мест!");
             }
-        }
-
-        // Если у события отключена модерация запросов или лимит участников равен 0, то статус автоматически CONFIRMED
-        RequestStatus startStatus = RequestStatus.PENDING;
-        if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {
-            startStatus = RequestStatus.CONFIRMED;
         }
 
         ParticipationRequest request = ParticipationRequest.builder()
@@ -101,9 +100,9 @@ public class RequestServiceImpl implements RequestService {
         }
 
         request.setStatus(RequestStatus.CANCELED);
+        requestRepository.save(request);
 
-        ParticipationRequest savedRequest = requestRepository.save(request);
-        return requestMapper.toDtoOut(savedRequest);
+        return requestMapper.toDtoOut(request);
     }
 
 }

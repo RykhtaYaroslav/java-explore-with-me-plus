@@ -1,5 +1,6 @@
 package ru.practicum.main.request.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
@@ -44,26 +45,37 @@ class RequestServiceImplTest {
     @InjectMocks
     private RequestServiceImpl requestService;
 
-    @Test
-    void createRequest_whenSuccessful_shouldReturnConfirmedRequestDto() {
+    private User requester;
 
-        User requester = new User();
+    private User initiator;
+
+    private Event event;
+
+    @BeforeEach
+    void setUp() {
+
+        requester = new User();
         requester.setId(1L);
         requester.setName("Иван");
         requester.setEmail("vanya@gmail.com");
 
-        User initiator = new User();
+        initiator = new User();
         initiator.setId(2L);
         initiator.setName("Ольга");
         initiator.setEmail("olga@gmail.com");
 
-        Event event = Event.builder()
+        event = Event.builder()
                 .id(10L)
                 .initiator(initiator)
-                .state(EventState.PUBLISHED)
-                .participantLimit(0)
-                .requestModeration(false)
                 .build();
+    }
+
+    @Test
+    void createRequest_whenSuccessful_shouldReturnConfirmedRequestDto() {
+
+        event.setState(EventState.PUBLISHED);
+        event.setParticipantLimit(0);
+        event.setRequestModeration(false);
 
         Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(requester));
         Mockito.when(eventRepository.findById(10L)).thenReturn(Optional.of(event));
@@ -87,17 +99,11 @@ class RequestServiceImplTest {
     @Test
     void createRequest_whenRequesterIsInitiator_shouldThrowConflictException() {
 
-        User initiator = new User();
-        initiator.setId(1L);
-        initiator.setName("Иван");
-        initiator.setEmail("vanya@gmail.com");
-        Event event = Event.builder().id(10L).initiator(initiator).build();
-
-        Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(initiator));
+        Mockito.when(userRepository.findById(2L)).thenReturn(Optional.of(initiator));
         Mockito.when(eventRepository.findById(10L)).thenReturn(Optional.of(event));
 
         ConflictException exception = assertThrows(ConflictException.class, () -> {
-            requestService.createRequest(1L, 10L);
+            requestService.createRequest(2L, 10L);
         });
 
         assertEquals("Организатор события не может подать заявку на участие в нём!", exception.getMessage());
@@ -106,21 +112,8 @@ class RequestServiceImplTest {
     @Test
     void createRequest_whenLimitReached_shouldThrowConflictException() {
 
-        User requester = new User();
-        requester.setId(1L);
-        requester.setName("Иван");
-        requester.setEmail("vanya@gmail.com");
-
-        User initiator = new User();
-        initiator.setId(2L);
-        initiator.setName("Ольга");
-        initiator.setEmail("olga@gmail.com");
-        Event event = Event.builder()
-                .id(10L)
-                .initiator(initiator)
-                .state(EventState.PUBLISHED)
-                .participantLimit(5)
-                .build();
+        event.setState(EventState.PUBLISHED);
+        event.setParticipantLimit(5);
 
         Mockito.when(userRepository.findById(1L)).thenReturn(Optional.of(requester));
         Mockito.when(eventRepository.findById(10L)).thenReturn(Optional.of(event));
