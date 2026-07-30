@@ -177,9 +177,7 @@ class EventServiceFindByInitiatorAndEventIdsUnitTest {
         Mockito.when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> eventService.findByInitiatorAndEventIds(USER_ID, EVENT_ID))
-                .isInstanceOf(NotFoundException.class)
-                .hasFieldOrPropertyWithValue("fieldName", "UserId")
-                .hasFieldOrPropertyWithValue("rejectedValue", USER_ID);
+                .isInstanceOf(NotFoundException.class);
 
         verify(userRepository, times(1)).findById(USER_ID);
 
@@ -197,9 +195,7 @@ class EventServiceFindByInitiatorAndEventIdsUnitTest {
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> eventService.findByInitiatorAndEventIds(USER_ID, EVENT_ID))
-                .isInstanceOf(NotFoundException.class)
-                .hasFieldOrPropertyWithValue("fieldName", "EventId")
-                .hasFieldOrPropertyWithValue("rejectedValue", EVENT_ID);
+                .isInstanceOf(NotFoundException.class);
 
         verify(userRepository, times(1)).findById(USER_ID);
         verify(eventRepository, times(1)).findByIdAndInitiatorId(EVENT_ID, USER_ID);

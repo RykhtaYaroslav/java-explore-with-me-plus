@@ -1,10 +1,7 @@
 package ru.practicum.main.exception;
 
-import lombok.Getter;
-
-
-@Getter
 public class NotFoundException extends RuntimeException {
+    public NotFoundException(String message) {
 
     private final String fieldName;
 
@@ -13,8 +10,6 @@ public class NotFoundException extends RuntimeException {
     public NotFoundException(String message, String fieldName, Object rejectedValue) {
 
         super(message);
-        this.fieldName = fieldName;
-        this.rejectedValue = rejectedValue;
     }
 
     public NotFoundException(String message) {
