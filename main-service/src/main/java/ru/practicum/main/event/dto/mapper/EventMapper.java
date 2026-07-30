@@ -49,5 +49,6 @@ public interface EventMapper {
     @Mapping(target = "initiator", ignore = true)
     @Mapping(target = "publishedOn", ignore = true)
     @Mapping(target = "state", ignore = true)
+    @Mapping(target = "location", source = "request.location")
     void updateEventFromAdminDto(UpdateEventAdminRequest request, @MappingTarget Event event);
 }
