@@ -1,6 +1,8 @@
 package ru.practicum.main.compilation.service;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.main.category.model.Category;
 import ru.practicum.main.compilation.dto.CompilationDto;
@@ -15,6 +17,7 @@ import ru.practicum.main.exception.ConflictException;
 import ru.practicum.main.exception.NotFoundException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -66,5 +69,33 @@ public class CompilationServiceImpl implements CompilationService {
     private Compilation checkAndReturnCompilation(long compId) {
         return compilationRepository.findById(compId).orElseThrow(() ->
                 new NotFoundException("Подборка с id = " + compId + " не найдена!"));
+    }
+
+    @Override
+    public List<CompilationDto> getCompilations(Boolean pinned, Integer from, Integer size) {
+
+        Pageable pageable = PageRequest.of(from / size, size);
+
+        List<Compilation> compilations;
+
+        if (pinned == null) {
+            compilations = compilationRepository.findAll(pageable).getContent();
+        } else {
+
+            compilations = compilationRepository.findAllByPinned(pinned, pageable);
+        }
+
+        return compilations.stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public CompilationDto getCompilationById(Long compId) {
+
+        Compilation compilation = compilationRepository.findById(compId)
+                .orElseThrow(() -> new NotFoundException("Подборка с id=" + compId + " не найдена"));
+
+        return mapper.toDto(compilation);
     }
 }
