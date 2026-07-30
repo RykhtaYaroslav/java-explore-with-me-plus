@@ -16,8 +16,7 @@ import java.util.List;
 public class UpdateCompilationRequest {
     private List<Long> events;
 
-    @JsonProperty(defaultValue = "false")
-    private boolean pinned;
+    private Boolean pinned;
 
     @Size(min = 1, max = 50, message = "Имя должно быть от {min} до {max} символов")
     private String title;
