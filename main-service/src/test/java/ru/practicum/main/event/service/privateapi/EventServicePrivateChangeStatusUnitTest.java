@@ -1,4 +1,4 @@
-package ru.practicum.main.event.service;
+package ru.practicum.main.event.service.privateapi;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class EventServiceChangeStatusUnitTest {
+class EventServicePrivateChangeStatusUnitTest {
 
     @Mock
     private EventRepository eventRepository;
@@ -46,7 +46,7 @@ class EventServiceChangeStatusUnitTest {
     private RequestMapper requestMapper;
 
     @InjectMocks
-    private EventServiceImpl eventService;
+    private EventServicePrivateImpl eventService;
 
     private final Long userId = 1L;
     private final Long eventId = 10L;

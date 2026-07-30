@@ -1,4 +1,4 @@
-package ru.practicum.main.event.service;
+package ru.practicum.main.event.service.privateapi;
 
 import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +43,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class EventServiceFindByInitiatorIdUnitTest {
+class EventServicePrivateFindByInitiatorIdUnitTest {
     private static final Long USER_ID = 100L;
     private static final Long FIRST_EVENT_ID = 1L;
     private static final Long SECOND_EVENT_ID = 2L;
@@ -63,7 +63,7 @@ class EventServiceFindByInitiatorIdUnitTest {
     @SuppressWarnings("all")
     private EventMapper eventMapper = Mappers.getMapper(EventMapper.class);
     @InjectMocks
-    private EventServiceImpl eventService;
+    private EventServicePrivateImpl eventService;
     private User user;
     private Event firstEvent;
     private Event secondEvent;

@@ -1,4 +1,4 @@
-package ru.practicum.main.event.service;
+package ru.practicum.main.event.service.privateapi;
 
 import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @ExtendWith(MockitoExtension.class)
-class EventServiceCreateUnitTest {
+class EventServicePrivateCreateUnitTest {
     private static final Long USER_ID = 100L;
     private static final Long CATEGORY_ID = 10L;
     private static final Long EVENT_ID = 1L;
@@ -52,7 +52,7 @@ class EventServiceCreateUnitTest {
     @SuppressWarnings("all")
     private EventMapper eventMapper = Mappers.getMapper(EventMapper.class);
     @InjectMocks
-    private EventServiceImpl eventService;
+    private EventServicePrivateImpl eventService;
     private User user;
     private Category category;
     private NewEventDto newEventDto;

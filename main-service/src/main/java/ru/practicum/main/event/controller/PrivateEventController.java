@@ -21,7 +21,7 @@ import ru.practicum.main.event.dto.EventRequestStatusUpdateResult;
 import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.NewEventDto;
 import ru.practicum.main.event.dto.UpdateEventUserRequest;
-import ru.practicum.main.event.service.EventService;
+import ru.practicum.main.event.service.privateapi.EventServicePrivate;
 import ru.practicum.main.request.dto.ParticipationRequestDto;
 
 import java.util.List;
@@ -31,12 +31,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @Validated
 public class PrivateEventController {
-    private final EventService eventService;
+    private final EventServicePrivate eventServicePrivate;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public EventFullDto create(@RequestBody @Valid NewEventDto newEventDto, @PathVariable @Positive Long userId) {
-        return eventService.create(userId, newEventDto);
+        return eventServicePrivate.create(userId, newEventDto);
     }
 
     @GetMapping
@@ -44,27 +44,27 @@ public class PrivateEventController {
             @PathVariable @Positive Long userId,
             @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
             @RequestParam(defaultValue = "10") @Positive Integer size) {
-        return eventService.findAllByInitiatorId(userId, from, size);
+        return eventServicePrivate.findAllByInitiatorId(userId, from, size);
     }
 
     @GetMapping("/{eventId}")
     public EventFullDto findByInitiatorAndEventIds(@PathVariable @Positive Long userId, @PathVariable @Positive Long eventId) {
-        return eventService.findByInitiatorAndEventIds(userId, eventId);
+        return eventServicePrivate.findByInitiatorAndEventIds(userId, eventId);
 
     }
 
     @PatchMapping("/{eventId}")
     public EventFullDto updateEventByInitiator(@RequestBody @Valid UpdateEventUserRequest request, @PathVariable @Positive Long userId, @PathVariable @Positive Long eventId) {
-        return eventService.updateEventByInitiator(request, userId, eventId);
+        return eventServicePrivate.updateEventByInitiator(request, userId, eventId);
     }
 
     @GetMapping("/{eventId}/requests")
     public List<ParticipationRequestDto> getEventRequestsByInitiator(@PathVariable @Positive Long userId, @PathVariable @Positive Long eventId) {
-        return eventService.getEventRequestsByInitiator(userId, eventId);
+        return eventServicePrivate.getEventRequestsByInitiator(userId, eventId);
     }
 
     @PatchMapping("/{eventId}/requests")
     public EventRequestStatusUpdateResult changeRequestsStatus(@PathVariable @Positive Long userId, @PathVariable @Positive Long eventId, @RequestBody EventRequestStatusUpdateRequest request) {
-        return eventService.changeRequestsStatus(userId, eventId, request);
+        return eventServicePrivate.changeRequestsStatus(userId, eventId, request);
     }
 }

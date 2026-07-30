@@ -1,4 +1,4 @@
-package ru.practicum.main.event.service;
+package ru.practicum.main.event.service.privateapi;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -45,7 +45,7 @@ import static ru.practicum.main.util.EwmConstants.DATE_TIME_FORMATTER;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class EventServiceImpl implements EventService {
+public class EventServicePrivateImpl implements EventServicePrivate {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
