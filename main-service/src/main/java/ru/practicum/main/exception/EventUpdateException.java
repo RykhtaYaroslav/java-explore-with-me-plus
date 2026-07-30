@@ -1,7 +1,9 @@
 package ru.practicum.main.exception;
 
-public class EventUpdateException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+public class EventUpdateException extends BaseAppException {
     public EventUpdateException(String message) {
-        super(message);
+        super(message, HttpStatus.CONFLICT, "Ошибка при обновлении события");
     }
 }

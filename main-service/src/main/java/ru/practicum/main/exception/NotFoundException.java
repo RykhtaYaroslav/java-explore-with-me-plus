@@ -1,21 +1,9 @@
 package ru.practicum.main.exception;
 
-import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
-@Getter
-public class NotFoundException extends RuntimeException {
-    private final String fieldName;
-    private final transient Object rejectedValue;
-
-    public NotFoundException(String message, String fieldName, Object rejectedValue) {
-        super(message);
-        this.fieldName = fieldName;
-        this.rejectedValue = rejectedValue;
-    }
-
+public class NotFoundException extends BaseAppException {
     public NotFoundException(String message) {
-        super(message);
-        this.fieldName = null;
-        this.rejectedValue = null;
+        super(message, HttpStatus.NOT_FOUND, "Искомый объект не был найден");
     }
 }
