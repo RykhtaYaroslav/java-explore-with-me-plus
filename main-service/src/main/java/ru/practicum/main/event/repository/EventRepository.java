@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.practicum.main.event.model.Event;
+import ru.practicum.main.event.model.EventState;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -61,4 +62,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                                   @Param("from") Integer from,
                                   @Param("size") Integer size
     );
+
+    Optional<Event> findByIdAndState(Long id, EventState state);
 }

@@ -8,6 +8,7 @@ import ru.practicum.main.event.dto.EventPublicParams;
 import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.EventSort;
 import ru.practicum.main.event.model.Event;
+import ru.practicum.main.event.model.EventState;
 import ru.practicum.main.event.repository.EventRepository;
 import ru.practicum.main.event.service.EventStatsCollector;
 import ru.practicum.main.exception.NotFoundException;
@@ -48,10 +49,12 @@ public class EventServicePublicImpl implements EventServicePublic {
 
     @Override
     public EventFullDto getEventFullInformation(Long id) {
-        Event event = eventRepository.findById(id)
+        Event event = eventRepository.findByIdAndState(id, EventState.PUBLISHED)
                 .orElseThrow(() -> new NotFoundException(String.format("Event with id = %d was not found", id)));
 
-        return eventStatsCollector.getFullDtoListWithStats(List.of(event)).getFirst();
+        List<Event> events = List.of(event);
+
+        return eventStatsCollector.getFullDtoListWithStats(events).getFirst();
     }
 
     @Override
@@ -96,6 +99,4 @@ public class EventServicePublicImpl implements EventServicePublic {
                 params.from(),
                 params.size());
     }
-
-
 }

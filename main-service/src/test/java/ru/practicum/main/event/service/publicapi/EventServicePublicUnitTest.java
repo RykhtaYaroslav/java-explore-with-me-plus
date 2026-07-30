@@ -14,6 +14,7 @@ import ru.practicum.main.event.dto.EventPublicParams;
 import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.EventSort;
 import ru.practicum.main.event.model.Event;
+import ru.practicum.main.event.model.EventState;
 import ru.practicum.main.event.repository.EventRepository;
 import ru.practicum.main.event.service.EventStatsCollector;
 import ru.practicum.main.exception.NotFoundException;
@@ -52,7 +53,7 @@ class EventServicePublicUnitTest {
     private EventServicePublicImpl eventServicePublic;
 
     private EventPublicParams defaultParams;
-    private Event event1;
+    private Event publishedEvent;
     private Event event2;
 
     @BeforeEach
@@ -69,14 +70,23 @@ class EventServicePublicUnitTest {
                 10
         );
 
-        event1 = Event.builder().id(1L).title("Event 1").build();
-        event2 = Event.builder().id(2L).title("Event 2").build();
+        publishedEvent = Event.builder()
+                .id(1L)
+                .title("Published Event")
+                .state(EventState.PUBLISHED)
+                .build();
+
+        event2 = Event.builder()
+                .id(2L)
+                .title("Event 2")
+                .state(EventState.PUBLISHED)
+                .build();
     }
 
     @Test
-    @DisplayName("getAllWithParams: успешный возврат списка DTO без прямой зависимости от HTTP-параметров")
+    @DisplayName("getAllWithParams: успешный возврат списка DTO")
     void getAllWithParams_shouldReturnEvents() {
-        List<Event> events = List.of(event1, event2);
+        List<Event> events = List.of(publishedEvent, event2);
         EventShortDto dto1 = EventShortDto.builder().id(1L).views(100L).build();
         EventShortDto dto2 = EventShortDto.builder().id(2L).views(50L).build();
 
@@ -123,7 +133,7 @@ class EventServicePublicUnitTest {
                 null, null, null, LocalDateTime.now(), null, false, EventSort.VIEWS, 0, 10
         );
 
-        List<Event> events = List.of(event1, event2);
+        List<Event> events = List.of(publishedEvent, event2);
 
         EventShortDto dtoWithLessViews = EventShortDto.builder().id(1L).views(50L).build();
         EventShortDto dtoWithMoreViews = EventShortDto.builder().id(2L).views(200L).build();
@@ -143,39 +153,40 @@ class EventServicePublicUnitTest {
     }
 
     @Test
-    @DisplayName("getEventFullInformation: успешное получение полной информации по ID события")
+    @DisplayName("getEventFullInformation: успешное получение опубликованного события по ID")
     void getEventFullInformation_shouldReturnEventFullDto() {
         Long eventId = 1L;
         EventFullDto expectedDto = EventFullDto.builder()
                 .id(eventId)
-                .title("Event 1")
+                .title("Published Event")
                 .category(CategoryDto.builder().id(10L).build())
                 .initiator(UserShortDto.builder().id(100L).build())
+                .state(EventState.PUBLISHED)
                 .views(10L)
                 .confirmedRequests(5L)
                 .build();
 
-        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event1));
-        when(eventStatsCollector.getFullDtoListWithStats(List.of(event1))).thenReturn(List.of(expectedDto));
+        when(eventRepository.findByIdAndState(eventId, EventState.PUBLISHED)).thenReturn(Optional.of(publishedEvent));
+        when(eventStatsCollector.getFullDtoListWithStats(List.of(publishedEvent))).thenReturn(List.of(expectedDto));
 
         EventFullDto result = eventServicePublic.getEventFullInformation(eventId);
 
         assertThat(result).isNotNull().isEqualTo(expectedDto);
-        verify(eventRepository).findById(eventId);
-        verify(eventStatsCollector).getFullDtoListWithStats(List.of(event1));
+        verify(eventRepository).findByIdAndState(eventId, EventState.PUBLISHED);
+        verify(eventStatsCollector).getFullDtoListWithStats(List.of(publishedEvent));
     }
 
     @Test
-    @DisplayName("getEventFullInformation: выбрасывает NotFoundException, если событие не найдено")
-    void getEventFullInformation_whenNotFound_shouldThrowNotFoundException() {
+    @DisplayName("getEventFullInformation: выбрасывает NotFoundException, если событие не найдено или не опубликовано")
+    void getEventFullInformation_whenNotFoundOrNotPublished_shouldThrowNotFoundException() {
         Long eventId = 999L;
-        when(eventRepository.findById(eventId)).thenReturn(Optional.empty());
+        when(eventRepository.findByIdAndState(eventId, EventState.PUBLISHED)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> eventServicePublic.getEventFullInformation(eventId))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage(String.format("Event with id = %d was not found", eventId));
 
-        verify(eventRepository).findById(eventId);
+        verify(eventRepository).findByIdAndState(eventId, EventState.PUBLISHED);
         verify(eventStatsCollector, never()).getFullDtoListWithStats(any());
     }
 
