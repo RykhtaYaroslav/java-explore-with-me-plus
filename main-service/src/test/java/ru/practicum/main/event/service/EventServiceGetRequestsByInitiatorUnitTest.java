@@ -31,23 +31,18 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class EventServiceGetRequestsByInitiatorUnitTest {
 
-    @Mock
-    private EventRepository eventRepository;
-
-    @Mock
-    private UserRepository userRepository;
-
-    @Mock
-    private RequestRepository requestRepository;
-
-    @Mock
-    private RequestMapper requestMapper;
-
-    @InjectMocks
-    private EventServiceImpl eventService;
-
     private final Long userId = 1L;
     private final Long eventId = 10L;
+    @Mock
+    private EventRepository eventRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private RequestRepository requestRepository;
+    @Mock
+    private RequestMapper requestMapper;
+    @InjectMocks
+    private EventServiceImpl eventService;
 
     @Test
     @DisplayName("Успешное получение списка заявок инициатором события")

@@ -47,40 +47,32 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class EventServiceUpdateEventByInitiatorUnitTest {
 
-    @Mock
-    private EventRepository eventRepository;
-
-    @Mock
-    private UserRepository userRepository;
-
-    @Mock
-    private CategoryRepository categoryRepository;
-
-    @Mock
-    private RequestRepository requestRepository;
-
-    @Mock
-    private StatsClient statRepository;
-
-    // MapStruct warns against using Mappers.getMapper() for Spring-managed mappers.
-    // Suppressed here because factory instantiation is required to spy on the real mapper in unit tests without loading the Spring context.
-    @Spy
-    @SuppressWarnings("all")
-    private EventMapper eventMapper = Mappers.getMapper(EventMapper.class);
-
-    @InjectMocks
-    private EventServiceImpl eventService;
-
-    private EasyRandom easyRandom;
-    private User user;
-    private Event event;
-    private Category category;
-
     private static final Long USER_ID = 100L;
     private static final Long EVENT_ID = 1L;
     private static final Long NEW_CATEGORY_ID = 5L;
     private static final Long VIEWS = 999L;
     private static final Long CONFIRMED_REQUESTS = 9999L;
+    @Mock
+    private EventRepository eventRepository;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private CategoryRepository categoryRepository;
+    @Mock
+    private RequestRepository requestRepository;
+    @Mock
+    private StatsClient statRepository;
+    // MapStruct warns against using Mappers.getMapper() for Spring-managed mappers.
+    // Suppressed here because factory instantiation is required to spy on the real mapper in unit tests without loading the Spring context.
+    @Spy
+    @SuppressWarnings("all")
+    private EventMapper eventMapper = Mappers.getMapper(EventMapper.class);
+    @InjectMocks
+    private EventServiceImpl eventService;
+    private EasyRandom easyRandom;
+    private User user;
+    private Event event;
+    private Category category;
 
     @BeforeEach
     void setUp() {

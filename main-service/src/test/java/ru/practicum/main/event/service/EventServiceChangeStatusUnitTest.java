@@ -36,20 +36,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class EventServiceChangeStatusUnitTest {
 
-    @Mock
-    private EventRepository eventRepository;
-
-    @Mock
-    private RequestRepository requestRepository;
-
-    @Mock
-    private RequestMapper requestMapper;
-
-    @InjectMocks
-    private EventServiceImpl eventService;
-
     private final Long userId = 1L;
     private final Long eventId = 10L;
+    @Mock
+    private EventRepository eventRepository;
+    @Mock
+    private RequestRepository requestRepository;
+    @Mock
+    private RequestMapper requestMapper;
+    @InjectMocks
+    private EventServiceImpl eventService;
 
     @Test
     @DisplayName("Успешное подтверждение заявок, когда лимит еще не исчерпан")
