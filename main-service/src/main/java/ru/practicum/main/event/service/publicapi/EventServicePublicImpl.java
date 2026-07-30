@@ -3,14 +3,14 @@ package ru.practicum.main.event.service.publicapi;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import ru.practicum.main.event.dto.EventFullDto;
 import ru.practicum.main.event.dto.EventPublicParams;
 import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.EventSort;
-import ru.practicum.main.event.dto.mapper.EventMapper;
 import ru.practicum.main.event.model.Event;
 import ru.practicum.main.event.repository.EventRepository;
 import ru.practicum.main.event.service.EventStatsCollector;
-import ru.practicum.main.request.repository.RequestRepository;
+import ru.practicum.main.exception.NotFoundException;
 import ru.practicum.stats.client.StatsClient;
 import ru.practicum.stats.dto.EndpointHitDto;
 
@@ -24,21 +24,12 @@ import static java.time.LocalDateTime.now;
 public class EventServicePublicImpl implements EventServicePublic {
     private final EventRepository eventRepository;
     private final StatsClient statsRepository;
-    private final RequestRepository requestRepository;
 
     private final EventStatsCollector eventStatsCollector;
 
-    private final EventMapper eventMapper;
 
     @Override
-    public List<EventShortDto> getAllWithParams(EventPublicParams params, String uri, String ip) {
-        statsRepository.hit(EndpointHitDto.builder()
-                .app("main-service")
-                .ip(ip)
-                .uri(uri)
-                .timestamp(now())
-                .build());
-
+    public List<EventShortDto> getAllWithParams(EventPublicParams params) {
 
         List<Event> events = getEventsWithParamsFromRepository(params);
 
@@ -53,6 +44,24 @@ public class EventServicePublicImpl implements EventServicePublic {
         }
 
         return shortDtos;
+    }
+
+    @Override
+    public EventFullDto getEventFullInformation(Long id) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(String.format("Event with id = %d was not found", id)));
+
+        return eventStatsCollector.getFullDtoListWithStats(List.of(event)).getFirst();
+    }
+
+    @Override
+    public void hitStat(String uri, String ip) {
+        statsRepository.hit(EndpointHitDto.builder()
+                .app("main-service")
+                .ip(ip)
+                .uri(uri)
+                .timestamp(now())
+                .build());
     }
 
     /**

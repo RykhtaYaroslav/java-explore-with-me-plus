@@ -7,9 +7,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.main.event.dto.EventFullDto;
 import ru.practicum.main.event.dto.EventPublicParams;
 import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.EventSort;
@@ -51,7 +53,17 @@ public class PublicEventController {
                 text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size
         );
 
-        return eventServicePublic.getAllWithParams(params, request.getRequestURI(), request.getRemoteAddr());
+        List<EventShortDto> result = eventServicePublic.getAllWithParams(params);
+
+        eventServicePublic.hitStat(request.getRequestURI(), request.getRemoteAddr());
+        return result;
     }
 
+    @GetMapping("/{id}")
+    public EventFullDto getEventFullInformation(@PathVariable @Positive Long id, HttpServletRequest request) {
+        EventFullDto result = eventServicePublic.getEventFullInformation(id);
+
+        eventServicePublic.hitStat(request.getRequestURI(), request.getRemoteAddr());
+        return result;
+    }
 }
