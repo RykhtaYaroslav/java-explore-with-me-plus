@@ -11,6 +11,7 @@ import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.LocationDto;
 import ru.practicum.main.event.dto.NewEventDto;
 import ru.practicum.main.event.dto.UpdateEventUserRequest;
+import ru.practicum.main.event.dto.admin.UpdateEventAdminRequest;
 import ru.practicum.main.event.model.Event;
 import ru.practicum.main.event.model.Location;
 import ru.practicum.main.user.model.User;
@@ -40,4 +41,13 @@ public interface EventMapper {
     @Mapping(target = "publishedOn", ignore = true)
     @Mapping(target = "state", ignore = true)
     void updateEventFromUserDto(UpdateEventUserRequest request, @MappingTarget Event event);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdOn", ignore = true)
+    @Mapping(target = "category", ignore = true)
+    @Mapping(target = "initiator", ignore = true)
+    @Mapping(target = "publishedOn", ignore = true)
+    @Mapping(target = "state", ignore = true)
+    void updateEventFromAdminDto(UpdateEventAdminRequest request, @MappingTarget Event event);
 }

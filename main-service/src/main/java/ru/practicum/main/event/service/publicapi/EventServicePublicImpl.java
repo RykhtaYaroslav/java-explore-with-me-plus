@@ -2,6 +2,7 @@ package ru.practicum.main.event.service.publicapi;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import ru.practicum.main.event.dto.EventFullDto;
 import ru.practicum.main.event.dto.EventQueryParams;
@@ -22,6 +23,7 @@ import static java.time.LocalDateTime.now;
 
 @RequiredArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class EventServicePublicImpl implements EventServicePublic {
     private final EventRepository eventRepository;
     private final StatsClient statsRepository;
