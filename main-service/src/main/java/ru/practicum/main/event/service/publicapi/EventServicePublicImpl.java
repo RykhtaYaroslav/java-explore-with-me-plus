@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import ru.practicum.main.event.dto.EventFullDto;
-import ru.practicum.main.event.dto.EventPublicParams;
+import ru.practicum.main.event.dto.EventQueryParams;
 import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.EventSort;
 import ru.practicum.main.event.model.Event;
@@ -30,7 +30,7 @@ public class EventServicePublicImpl implements EventServicePublic {
 
 
     @Override
-    public List<EventShortDto> getAllWithParams(EventPublicParams params) {
+    public List<EventShortDto> getAllWithParams(EventQueryParams params) {
 
         List<Event> events = getEventsWithParamsFromRepository(params);
 
@@ -78,15 +78,17 @@ public class EventServicePublicImpl implements EventServicePublic {
      * </ul>
      * </p>
      *
-     * @param params the {@link EventPublicParams} record containing request filters, pagination options, and sorting strategy
+     * @param params the {@link EventQueryParams} record containing request filters, pagination options, and sorting strategy
      * @return a {@link List} of filtered {@link Event} entities matching the specified criteria
      */
-    private List<Event> getEventsWithParamsFromRepository(EventPublicParams params) {
+    private List<Event> getEventsWithParamsFromRepository(EventQueryParams params) {
         String text = (params.text() == null || params.text().isBlank()) ? null : String.format("%%%s%%", params.text());
 
         List<Long> categories = CollectionUtils.isEmpty(params.categories()) ? null : params.categories();
 
         String sort = (params.sort() != null) ? params.sort().name() : null;
+
+        List<String> states = params.states().stream().map(Enum::name).toList();
 
         return eventRepository.findAllWithParams(
                 text,
@@ -96,6 +98,8 @@ public class EventServicePublicImpl implements EventServicePublic {
                 params.rangeEnd(),
                 params.onlyAvailable(),
                 sort,
+                params.users(),
+                states,
                 params.from(),
                 params.size());
     }

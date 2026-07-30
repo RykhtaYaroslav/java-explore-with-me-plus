@@ -35,7 +35,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Query(value = """
             SELECT e.*
             FROM events AS e
-            WHERE e.state = 'PUBLISHED'
+            WHERE (CAST(:users AS bigint[]) IS NULL OR e.initiator_id IN (:users))
+            AND (CAST(:states AS text[]) IS NULL OR e.state IN (:states))
             AND (:text IS NULL OR (LOWER(e.annotation) LIKE LOWER(:text) OR LOWER(e.description) LIKE LOWER(:text)))
             AND (:paid IS NULL OR e.paid = :paid)
             AND (CAST(:rangeStart AS timestamp) IS NULL OR e.event_date >= :rangeStart)
@@ -45,22 +46,25 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                 FROM requests AS r
                 WHERE r.event_id = e.id AND r.status = 'CONFIRMED'
             ))
-            AND (:categories IS NULL OR e.category_id IN (:categories))
+            AND (CAST(:categories AS bigint[]) IS NULL OR e.category_id IN (:categories))
             ORDER BY 
                 CASE WHEN :sort = 'EVENT_DATE' THEN e.event_date END ASC,
                 e.id ASC
             OFFSET :from
             LIMIT :size
             """, nativeQuery = true)
-    List<Event> findAllWithParams(@Param("text") String text,
-                                  @Param("categories") List<Long> categories,
-                                  @Param("paid") Boolean paid,
-                                  @Param("rangeStart") LocalDateTime rangeStart,
-                                  @Param("rangeEnd") LocalDateTime rangeEnd,
-                                  @Param("onlyAvailable") Boolean onlyAvailable,
-                                  @Param("sort") String sort,
-                                  @Param("from") Integer from,
-                                  @Param("size") Integer size
+    List<Event> findAllWithParams(
+            @Param("text") String text,
+            @Param("categories") List<Long> categories,
+            @Param("paid") Boolean paid,
+            @Param("rangeStart") LocalDateTime rangeStart,
+            @Param("rangeEnd") LocalDateTime rangeEnd,
+            @Param("onlyAvailable") Boolean onlyAvailable,
+            @Param("sort") String sort,
+            @Param("users") List<Long> users,
+            @Param("states") List<String> states,
+            @Param("from") Integer from,
+            @Param("size") Integer size
     );
 
     Optional<Event> findByIdAndState(Long id, EventState state);
