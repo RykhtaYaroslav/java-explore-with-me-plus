@@ -197,18 +197,22 @@ class EventStatsCollectorTest {
     }
 
     @Test
-    @DisplayName("getViewStatsDtoList: использование дефолтной даты (-10 лет), если createdOn равен null")
-    void getViewStatsDtoList_whenCreatedOnIsNull_shouldUseDefaultMinDate() {
-        Event eventWithoutDate = Event.builder().id(99L).createdOn(null).build();
+    @DisplayName("getViewsByEventMap: использование дефолтной даты (-10 лет), если createdOn равен null")
+    void getViewsByEventMap_whenCreatedOnIsNull_shouldUseDefaultMinDate() {
+        Event eventWithoutDate = Event.builder()
+                .id(99L)
+                .createdOn(null)
+                .build();
+
         List<String> uris = List.of("/events/99");
 
         when(statsRepository.getStats(any(LocalDateTime.class), any(LocalDateTime.class), eq(uris), eq(true)))
                 .thenReturn(List.of());
 
-        statsCollector.getViewStatsDtoList(List.of(eventWithoutDate));
+        statsCollector.getViewsByEventMap(List.of(eventWithoutDate));
 
         verify(statsRepository).getStats(
-                argThat(minDate -> minDate.isBefore(LocalDateTime.now().minusYears(9))),
+                argThat(minDate -> minDate != null && minDate.isBefore(LocalDateTime.now().minusYears(9))),
                 any(LocalDateTime.class),
                 eq(uris),
                 eq(true)

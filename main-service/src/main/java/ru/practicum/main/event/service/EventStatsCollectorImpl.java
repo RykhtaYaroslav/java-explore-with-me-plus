@@ -78,7 +78,7 @@ public class EventStatsCollectorImpl implements EventStatsCollector {
      * @param events the list of {@link Event} entities for which to query view statistics
      * @return a list of {@link ViewStatsDto} containing hit counts for the provided event URIs
      */
-    public List<ViewStatsDto> getViewStatsDtoList(List<Event> events) {
+    private List<ViewStatsDto> getViewStatsDtoList(List<Event> events) {
         // This method pulls statistics about events from stat module
 
         LocalDateTime now = now();
@@ -134,7 +134,7 @@ public class EventStatsCollectorImpl implements EventStatsCollector {
      * @param confirmedRequestsByEventMap a map containing event IDs and their confirmed request counts
      * @return the fully populated {@link EventShortDto}
      */
-    public EventShortDto saturateEventShortDto(Event event, Map<Long, Long> viewsByEventMap, Map<Long, Long> confirmedRequestsByEventMap) {
+    private EventShortDto saturateEventShortDto(Event event, Map<Long, Long> viewsByEventMap, Map<Long, Long> confirmedRequestsByEventMap) {
         Long views = viewsByEventMap.getOrDefault(event.getId(), 0L);
         Long confirmedRequests = confirmedRequestsByEventMap.getOrDefault(event.getId(), 0L);
 
