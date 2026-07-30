@@ -2,67 +2,59 @@ package ru.practicum.main.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
 import java.util.stream.Collectors;
+
+import static java.time.LocalDateTime.now;
 
 @Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleBadRequest(NotFoundException e) {
+    /**
+     * Unified handler for all custom application business exceptions.
+     *
+     * @param e the caught {@link BaseAppException}
+     * @return a {@link ResponseEntity} containing the populated {@link ErrorResponse} and the corresponding HTTP status
+     */
+    @ExceptionHandler(BaseAppException.class)
+    public ResponseEntity<ErrorResponse> handleAppException(BaseAppException e) {
+        log.error("Получена ошибка {}: {}", e.getStatus(), e.getMessage(), e);
+
         ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.NOT_FOUND.name())
-                .reason("Искомый объект не был найден")
+                .status(e.getStatus().name())
+                .reason(e.getReason())
                 .message(e.getMessage())
-                .timestamp(LocalDateTime.now())
+                .timestamp(now())
                 .build();
-        log.error("Получена ошибка 404 Not Found: {}", e.getMessage(), e);
-        return errorResponse;
+
+        return new ResponseEntity<>(errorResponse, e.getStatus());
     }
 
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleBadRequest(BadRequestException e) {
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.BAD_REQUEST.name())
-                .reason("Некорректный запрос")
-                .message(e.getMessage())
-                .timestamp(LocalDateTime.now())
-                .build();
-        log.error("Получена ошибка 400 Bad Request: {}", e.getMessage(), e);
-        return errorResponse;
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleConflict(ConflictException e) {
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.CONFLICT.name())
-                .reason("Нарушена целостность данных")
-                .message(e.getMessage())
-                .timestamp(LocalDateTime.now())
-                .build();
-        log.error("Получена ошибка 409 Conflict: {}", e.getMessage(), e);
-        return errorResponse;
-    }
-
+    /**
+     * Handler for DTO validation errors triggered by {@code @Valid} annotation.
+     *
+     * @param e the caught {@link MethodArgumentNotValidException}
+     * @return a {@link ResponseEntity} containing the aggregated validation error messages and HTTP status 400 (Bad Request)
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleValidationExceptions(MethodArgumentNotValidException e) {
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining("; "));
-        return ErrorResponse.builder()
+
+        log.error("Получена ошибка 400 Bad Request (Validation): {}", message);
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.name())
                 .reason("Ошибка валидации данных")
                 .message(message)
-                .timestamp(LocalDateTime.now())
+                .timestamp(now())
                 .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 }
