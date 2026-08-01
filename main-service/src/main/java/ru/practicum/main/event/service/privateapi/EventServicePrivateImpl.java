@@ -163,7 +163,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
     public EventRequestStatusUpdateResult changeRequestsStatus(Long userId, Long eventId, EventRequestStatusUpdateRequest incomingRequestDto) {
         Event event = getEventByIdAndInitiator(userId, eventId); // Validate event by user and throws exception if no access
         Long confReq = getConfirmedRequestsAmountOrThrow(event); // throws exception if no need to confirm or limit has reached
-        List<ParticipationRequest> participationRequests = getRequestsIfExistOrThrow(incomingRequestDto); //returns list of requests or throw exception if not found by id
+        List<ParticipationRequest> participationRequests = getRequestsIfExistOrThrow(incomingRequestDto, eventId); //returns list of requests or throw exception if not found by id
 
         checkStatusIsPendingOrThrow(participationRequests);
 
@@ -280,11 +280,11 @@ public class EventServicePrivateImpl implements EventServicePrivate {
      * @return a {@link List} of found {@link ParticipationRequest} entities
      * @throws NotFoundException if any of the specified request IDs are not found in the database
      */
-    private List<ParticipationRequest> getRequestsIfExistOrThrow(EventRequestStatusUpdateRequest incomingRequestDto) {
+    private List<ParticipationRequest> getRequestsIfExistOrThrow(EventRequestStatusUpdateRequest incomingRequestDto, Long eventId) {
         List<Long> requestIds = incomingRequestDto.getRequestsIds();
 
         if (CollectionUtils.isEmpty(requestIds)) {
-            return Collections.emptyList();
+            return requestRepository.findAllByEventId(eventId);
         }
 
         Set<Long> uniqueIds = new HashSet<>(requestIds);
@@ -309,11 +309,13 @@ public class EventServicePrivateImpl implements EventServicePrivate {
     private List<ParticipationRequest> rejectAllOtherPendingRequests(EventRequestStatusUpdateRequest incomingRequestDto, Long eventId) {
         List<ParticipationRequest> allRequests = requestRepository.findAllByEventId(eventId);
 
-        Set<Long> requestsIds = new HashSet<>(incomingRequestDto.getRequestsIds());
+        List<Long> requestsIds = incomingRequestDto.getRequestsIds();
+
+        Set<Long> uniqueIds = requestsIds == null ? Collections.emptySet() : new HashSet<>(incomingRequestDto.getRequestsIds());
 
         List<ParticipationRequest> rejected = allRequests.stream()
                 .filter(request -> request.getStatus() == RequestStatus.PENDING)
-                .filter(request -> !requestsIds.contains(request.getId()))
+                .filter(request -> !uniqueIds.contains(request.getId()))
                 .toList();
 
         rejected.forEach(request -> request.setStatus(RequestStatus.REJECTED));
