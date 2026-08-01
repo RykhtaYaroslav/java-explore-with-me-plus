@@ -1,6 +1,5 @@
 package ru.practicum.main.compilation.service;
 
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,8 +35,7 @@ public class CompilationServiceImpl implements CompilationService {
             List<Event> events = eventRepository.findAllById(compilation.getEvents());
 
             comp = mapper.toCompilation(compilation, events);
-        }
-        else {
+        } else {
             comp = mapper.toCompilation(compilation);
         }
         return mapper.toDto(compilationRepository.save(comp));

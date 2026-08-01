@@ -103,7 +103,7 @@ public class EventServiceAdminImpl implements EventServiceAdmin {
                 }
                 event.setState(EventState.CANCELED);
             }
-            case null, default -> {/*Do nothing*/}
+            case null, default -> { /*Do nothing*/ }
         }
     }
 }

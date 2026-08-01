@@ -264,7 +264,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
         switch (stateActionUser) {
             case CANCEL_REVIEW -> event.setState(EventState.CANCELED);
             case SEND_TO_REVIEW -> event.setState(EventState.PENDING);
-            case null, default -> {/*Do nothing*/}
+            case null, default -> { /*Do nothing*/ }
         }
     }
 

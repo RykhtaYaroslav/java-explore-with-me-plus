@@ -14,11 +14,11 @@ import java.util.Optional;
 public interface EventRepository extends JpaRepository<Event, Long> {
     @SuppressWarnings("all")
     @Query("""
-        SELECT e
-        FROM Event e
-        WHERE e.initiator.id = :userId
-        ORDER BY e.id ASC
-        """)
+            SELECT e
+            FROM Event e
+            WHERE e.initiator.id = :userId
+            ORDER BY e.id ASC
+            """)
     List<Event> findByInitiatorId(@Param("userId") Long userId,
                                   Pageable pageable);
 
