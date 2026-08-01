@@ -22,12 +22,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Getter
+@Setter
 @ToString
 @Builder
 @Entity
 @Table(name = "compilations")
-@Getter
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Compilation {
@@ -42,6 +42,7 @@ public class Compilation {
     @Column(name = "pinned", nullable = false)
     private Boolean pinned = false;
 
+    @Builder.Default
     @ManyToMany
     @JoinTable(
             name = "compilation_events",
