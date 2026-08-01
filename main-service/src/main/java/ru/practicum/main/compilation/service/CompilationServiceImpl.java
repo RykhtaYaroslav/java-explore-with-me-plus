@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import ru.practicum.main.compilation.dto.CompilationDto;
 import ru.practicum.main.compilation.dto.CompilationMapper;
@@ -17,30 +18,35 @@ import ru.practicum.main.exception.ConflictException;
 import ru.practicum.main.exception.NotFoundException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
+@Transactional
 public class CompilationServiceImpl implements CompilationService {
     private final CompilationRepository compilationRepository;
     private final EventRepository eventRepository;
     private final CompilationMapper mapper;
 
     @Override
-    public CompilationDto createCompilation(NewCompilationDto compilation) {
-        if (compilationRepository.existsByTitle(compilation.getTitle())) {
-            throw new ConflictException("Подборка с заголовком = " + compilation.getTitle() + " уже существует");
+    public CompilationDto createCompilation(NewCompilationDto compilationDto) {
+        if (compilationRepository.existsByTitle(compilationDto.getTitle())) {
+            throw new ConflictException("Подборка с заголовком = " + compilationDto.getTitle() + " уже существует");
         }
-        Compilation comp;
-        if (!CollectionUtils.isEmpty(compilation.getEvents())) {
-            List<Event> events = eventRepository.findAllById(compilation.getEvents());
 
-            comp = mapper.toCompilation(compilation, events);
-        } else {
-            compilation.setEvents(new ArrayList<>());
-            comp = mapper.toCompilation(compilation);
+        List<Event> events = Collections.emptyList();
+        if (!CollectionUtils.isEmpty(compilationDto.getEvents())) {
+            events = eventRepository.findAllById(compilationDto.getEvents());
         }
+
+        Compilation comp = mapper.toCompilation(compilationDto, events);
+
+        // На всякий случай гарантируем, что список events не null (защита от особенностей Lombok Builder)
+        if (comp.getEvents() == null) {
+            comp.setEvents(new ArrayList<>());
+        }
+
         return mapper.toDto(compilationRepository.save(comp));
     }
 
@@ -78,6 +84,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CompilationDto> getCompilations(Boolean pinned, Integer from, Integer size) {
 
         Pageable pageable = PageRequest.of(from / size, size);
@@ -93,10 +100,11 @@ public class CompilationServiceImpl implements CompilationService {
 
         return compilations.stream()
                 .map(mapper::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CompilationDto getCompilationById(Long compId) {
 
         Compilation compilation = compilationRepository.findById(compId)
