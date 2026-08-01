@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import ru.practicum.main.compilation.dto.CompilationDto;
 import ru.practicum.main.compilation.dto.CompilationMapper;
 import ru.practicum.main.compilation.dto.NewCompilationDto;
@@ -15,6 +16,7 @@ import ru.practicum.main.event.repository.EventRepository;
 import ru.practicum.main.exception.ConflictException;
 import ru.practicum.main.exception.NotFoundException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,11 +33,12 @@ public class CompilationServiceImpl implements CompilationService {
             throw new ConflictException("Подборка с заголовком = " + compilation.getTitle() + " уже существует");
         }
         Compilation comp;
-        if (compilation.getEvents() != null) {
+        if (!CollectionUtils.isEmpty(compilation.getEvents())) {
             List<Event> events = eventRepository.findAllById(compilation.getEvents());
 
             comp = mapper.toCompilation(compilation, events);
         } else {
+            compilation.setEvents(new ArrayList<>());
             comp = mapper.toCompilation(compilation);
         }
         return mapper.toDto(compilationRepository.save(comp));
