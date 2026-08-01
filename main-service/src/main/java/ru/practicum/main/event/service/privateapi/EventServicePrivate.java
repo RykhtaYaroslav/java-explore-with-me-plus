@@ -1,4 +1,4 @@
-package ru.practicum.main.event.service;
+package ru.practicum.main.event.service.privateapi;
 
 import ru.practicum.main.event.dto.EventFullDto;
 import ru.practicum.main.event.dto.EventRequestStatusUpdateRequest;
@@ -10,7 +10,7 @@ import ru.practicum.main.request.dto.ParticipationRequestDto;
 
 import java.util.List;
 
-public interface EventService {
+public interface EventServicePrivate {
     EventFullDto create(Long userId, NewEventDto newEventDto);
 
     List<EventShortDto> findAllByInitiatorId(Long userId, Integer from, Integer size);

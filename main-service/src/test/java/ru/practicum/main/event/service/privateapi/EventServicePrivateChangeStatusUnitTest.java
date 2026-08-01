@@ -1,4 +1,4 @@
-package ru.practicum.main.event.service;
+package ru.practicum.main.event.service.privateapi;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,9 +10,9 @@ import ru.practicum.main.event.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.main.event.dto.EventRequestStatusUpdateResult;
 import ru.practicum.main.event.model.Event;
 import ru.practicum.main.event.repository.EventRepository;
+import ru.practicum.main.event.service.EventStatsCollector;
 import ru.practicum.main.exception.EventUpdateException;
 import ru.practicum.main.exception.NotFoundException;
-import ru.practicum.main.request.dto.ConfirmedRequestsCount;
 import ru.practicum.main.request.dto.ParticipationRequestDto;
 import ru.practicum.main.request.dto.mapper.RequestMapper;
 import ru.practicum.main.request.model.ParticipationRequest;
@@ -21,6 +21,7 @@ import ru.practicum.main.request.repository.RequestRepository;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -34,18 +35,25 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class EventServiceChangeStatusUnitTest {
+class EventServicePrivateChangeStatusUnitTest {
+
+    @Mock
+    private EventRepository eventRepository;
+
+    @Mock
+    private RequestRepository requestRepository;
+
+    @Mock
+    private RequestMapper requestMapper;
+
+    @Mock
+    private EventStatsCollector eventStatsCollector;
+
+    @InjectMocks
+    private EventServicePrivateImpl eventService;
 
     private final Long userId = 1L;
     private final Long eventId = 10L;
-    @Mock
-    private EventRepository eventRepository;
-    @Mock
-    private RequestRepository requestRepository;
-    @Mock
-    private RequestMapper requestMapper;
-    @InjectMocks
-    private EventServiceImpl eventService;
 
     @Test
     @DisplayName("Успешное подтверждение заявок, когда лимит еще не исчерпан")
@@ -68,8 +76,7 @@ class EventServiceChangeStatusUnitTest {
         ParticipationRequestDto dto2 = ParticipationRequestDto.builder().id(101L).status(RequestStatus.CONFIRMED).build();
 
         when(eventRepository.findByIdAndInitiatorId(eventId, userId)).thenReturn(Optional.of(event));
-        when(requestRepository.countRequestsCountByEventIds(List.of(eventId), RequestStatus.CONFIRMED))
-                .thenReturn(List.of(new ConfirmedRequestsCount(eventId, 2L)));
+        when(eventStatsCollector.getConReqByEventMap(List.of(event))).thenReturn(Map.of(eventId, 2L));
         when(requestRepository.findAllById(Set.of(100L, 101L))).thenReturn(List.of(req1, req2));
         when(requestMapper.toDtoOut(req1)).thenReturn(dto1);
         when(requestMapper.toDtoOut(req2)).thenReturn(dto2);
@@ -105,8 +112,7 @@ class EventServiceChangeStatusUnitTest {
         ParticipationRequestDto rejectedDto = ParticipationRequestDto.builder().id(102L).status(RequestStatus.REJECTED).build();
 
         when(eventRepository.findByIdAndInitiatorId(eventId, userId)).thenReturn(Optional.of(event));
-        when(requestRepository.countRequestsCountByEventIds(List.of(eventId), RequestStatus.CONFIRMED))
-                .thenReturn(List.of(new ConfirmedRequestsCount(eventId, 2L)));
+        when(eventStatsCollector.getConReqByEventMap(List.of(event))).thenReturn(Map.of(eventId, 2L));
         when(requestRepository.findAllById(Set.of(100L))).thenReturn(List.of(targetReq));
         when(requestRepository.findAllByEventId(eventId)).thenReturn(List.of(targetReq, otherPendingReq));
         when(requestMapper.toDtoOut(targetReq)).thenReturn(confirmedDto);
@@ -141,8 +147,7 @@ class EventServiceChangeStatusUnitTest {
         ParticipationRequestDto dto2 = ParticipationRequestDto.builder().id(101L).status(RequestStatus.REJECTED).build();
 
         when(eventRepository.findByIdAndInitiatorId(eventId, userId)).thenReturn(Optional.of(event));
-        when(requestRepository.countRequestsCountByEventIds(List.of(eventId), RequestStatus.CONFIRMED))
-                .thenReturn(List.of(new ConfirmedRequestsCount(eventId, 1L)));
+        when(eventStatsCollector.getConReqByEventMap(List.of(event))).thenReturn(Map.of(eventId, 1L));
         when(requestRepository.findAllById(Set.of(100L, 101L))).thenReturn(List.of(req1, req2));
         when(requestRepository.findAllByEventId(eventId)).thenReturn(List.of(req1, req2));
         when(requestMapper.toDtoOut(req1)).thenReturn(dto1);
@@ -174,8 +179,7 @@ class EventServiceChangeStatusUnitTest {
         ParticipationRequestDto rejectedDto = ParticipationRequestDto.builder().id(100L).status(RequestStatus.REJECTED).build();
 
         when(eventRepository.findByIdAndInitiatorId(eventId, userId)).thenReturn(Optional.of(event));
-        when(requestRepository.countRequestsCountByEventIds(List.of(eventId), RequestStatus.CONFIRMED))
-                .thenReturn(Collections.emptyList());
+        when(eventStatsCollector.getConReqByEventMap(List.of(event))).thenReturn(Collections.emptyMap());
         when(requestRepository.findAllById(Set.of(100L))).thenReturn(List.of(req));
         when(requestMapper.toDtoOut(req)).thenReturn(rejectedDto);
 
@@ -247,8 +251,7 @@ class EventServiceChangeStatusUnitTest {
                 .build();
 
         when(eventRepository.findByIdAndInitiatorId(eventId, userId)).thenReturn(Optional.of(event));
-        when(requestRepository.countRequestsCountByEventIds(List.of(eventId), RequestStatus.CONFIRMED))
-                .thenReturn(List.of(new ConfirmedRequestsCount(eventId, 5L)));
+        when(eventStatsCollector.getConReqByEventMap(List.of(event))).thenReturn(Map.of(eventId, 5L));
 
         EventUpdateException exception = assertThrows(EventUpdateException.class,
                 () -> eventService.changeRequestsStatus(userId, eventId, requestDto));
@@ -273,8 +276,7 @@ class EventServiceChangeStatusUnitTest {
         ParticipationRequest req1 = ParticipationRequest.builder().id(100L).status(RequestStatus.PENDING).build();
 
         when(eventRepository.findByIdAndInitiatorId(eventId, userId)).thenReturn(Optional.of(event));
-        when(requestRepository.countRequestsCountByEventIds(List.of(eventId), RequestStatus.CONFIRMED))
-                .thenReturn(Collections.emptyList());
+        when(eventStatsCollector.getConReqByEventMap(List.of(event))).thenReturn(Collections.emptyMap());
         when(requestRepository.findAllById(Set.of(100L, 101L))).thenReturn(List.of(req1));
 
         NotFoundException exception = assertThrows(NotFoundException.class,
@@ -300,8 +302,7 @@ class EventServiceChangeStatusUnitTest {
         ParticipationRequest req = ParticipationRequest.builder().id(100L).status(RequestStatus.CONFIRMED).build();
 
         when(eventRepository.findByIdAndInitiatorId(eventId, userId)).thenReturn(Optional.of(event));
-        when(requestRepository.countRequestsCountByEventIds(List.of(eventId), RequestStatus.CONFIRMED))
-                .thenReturn(Collections.emptyList());
+        when(eventStatsCollector.getConReqByEventMap(List.of(event))).thenReturn(Collections.emptyMap());
         when(requestRepository.findAllById(Set.of(100L))).thenReturn(List.of(req));
 
         EventUpdateException exception = assertThrows(EventUpdateException.class,

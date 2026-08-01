@@ -1,4 +1,4 @@
-package ru.practicum.main.event.service;
+package ru.practicum.main.event.service.privateapi;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,20 +29,25 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class EventServiceGetRequestsByInitiatorUnitTest {
+class EventServicePrivateGetRequestsByInitiatorUnitTest {
+
+    @Mock
+    private EventRepository eventRepository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private RequestRepository requestRepository;
+
+    @Mock
+    private RequestMapper requestMapper;
+
+    @InjectMocks
+    private EventServicePrivateImpl eventService;
 
     private final Long userId = 1L;
     private final Long eventId = 10L;
-    @Mock
-    private EventRepository eventRepository;
-    @Mock
-    private UserRepository userRepository;
-    @Mock
-    private RequestRepository requestRepository;
-    @Mock
-    private RequestMapper requestMapper;
-    @InjectMocks
-    private EventServiceImpl eventService;
 
     @Test
     @DisplayName("Успешное получение списка заявок инициатором события")
