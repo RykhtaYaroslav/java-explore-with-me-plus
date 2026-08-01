@@ -16,7 +16,7 @@ import java.util.List;
 public class NewCompilationDto {
     private List<Long> events;
 
-    private boolean pinned;
+    private Boolean pinned;
 
     @NotBlank(message = "Заголовок не может быть пустым")
     @Size(min = 1, max = 50, message = "Имя должно быть от {min} до {max} символов")
