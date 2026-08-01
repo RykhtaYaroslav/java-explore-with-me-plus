@@ -1,6 +1,8 @@
 package ru.practicum.main.event.service.publicapi;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -84,13 +86,15 @@ public class EventServicePublicImpl implements EventServicePublic {
      * @return a {@link List} of filtered {@link Event} entities matching the specified criteria
      */
     private List<Event> getEventsWithParamsFromRepository(EventQueryParams params) {
-        String text = (params.text() == null || params.text().isBlank()) ? null : String.format("%%%s%%", params.text());
+        String text = (params.text() == null || params.text().isBlank()) ? null : params.text().toLowerCase();
 
         List<Long> categories = CollectionUtils.isEmpty(params.categories()) ? null : params.categories();
 
         String sort = (params.sort() != null) ? params.sort().name() : null;
 
         List<String> states = params.states().stream().map(Enum::name).toList();
+
+        Pageable pageable = PageRequest.of(params.from() / params.size(), params.size());
 
         return eventRepository.findAllWithParams(
                 text,
@@ -102,7 +106,6 @@ public class EventServicePublicImpl implements EventServicePublic {
                 sort,
                 params.users(),
                 states,
-                params.from(),
-                params.size());
+                pageable);
     }
 }

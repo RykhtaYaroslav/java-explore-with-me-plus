@@ -1,5 +1,6 @@
 package ru.practicum.main.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,18 +35,25 @@ public class ErrorHandler {
         return new ResponseEntity<>(errorResponse, e.getStatus());
     }
 
-    /**
-     * Handler for DTO validation errors triggered by {@code @Valid} annotation.
-     *
-     * @param e the caught {@link MethodArgumentNotValidException}
-     * @return a {@link ResponseEntity} containing the aggregated validation error messages and HTTP status 400 (Bad Request)
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException e) {
+    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .map(error -> String.format("%s: %s", error.getField(), error.getDefaultMessage()))
                 .collect(Collectors.joining("; "));
 
+        return buildValidationResponse(message);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException e) {
+        String message = e.getConstraintViolations().stream()
+                .map(violation -> String.format("%s: %s", violation.getPropertyPath(), violation.getMessage()))
+                .collect(Collectors.joining("; "));
+
+        return buildValidationResponse(message);
+    }
+
+    private ResponseEntity<ErrorResponse> buildValidationResponse(String message) {
         log.error("Получена ошибка 400 Bad Request (Validation): {}", message);
 
         ErrorResponse errorResponse = ErrorResponse.builder()

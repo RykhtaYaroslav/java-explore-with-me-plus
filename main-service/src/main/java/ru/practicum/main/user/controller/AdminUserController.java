@@ -31,6 +31,7 @@ public class AdminUserController {
         return userService.getUsers(ids, from, size);
     }
 
+    //забыл uris?
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto createUser(@Valid @RequestBody NewUserRequest user) {

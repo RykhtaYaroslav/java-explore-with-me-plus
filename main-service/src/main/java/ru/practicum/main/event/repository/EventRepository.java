@@ -1,5 +1,6 @@
 package ru.practicum.main.event.repository;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,17 +13,14 @@ import java.util.Optional;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
     @SuppressWarnings("all")
-    @Query(value = """
-            SELECT e.*
-            FROM events AS e
-            WHERE initiator_id = :userId
+    @Query("""
+            SELECT e
+            FROM Event e
+            WHERE e.initiator.id = :userId
             ORDER BY e.id ASC
-            OFFSET :from
-            LIMIT :size
-            """, nativeQuery = true)
+            """)
     List<Event> findByInitiatorId(@Param("userId") Long userId,
-                                  @Param("from") Integer from,
-                                  @Param("size") Integer size);
+                                  Pageable pageable);
 
     Optional<Event> findByIdAndInitiatorId(Long id, Long initiatorId);
 
@@ -32,27 +30,25 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     boolean existsByCategoryId(Long categoryId);
 
     @SuppressWarnings("all")
-    @Query(value = """
-            SELECT e.*
-            FROM events AS e
-            WHERE (CAST(:users AS bigint[]) IS NULL OR e.initiator_id IN (:users))
-            AND (CAST(:states AS text[]) IS NULL OR e.state IN (:states))
-            AND (:text IS NULL OR (LOWER(e.annotation) LIKE LOWER(:text) OR LOWER(e.description) LIKE LOWER(:text)))
-            AND (:paid IS NULL OR e.paid = :paid)
-            AND (CAST(:rangeStart AS timestamp) IS NULL OR e.event_date >= :rangeStart)
-            AND (CAST(:rangeEnd AS timestamp) IS NULL OR e.event_date <= :rangeEnd)
-            AND (:onlyAvailable = FALSE OR e.participant_limit = 0 OR e.participant_limit > (
-                SELECT COUNT(r.id)
-                FROM requests AS r
-                WHERE r.event_id = e.id AND r.status = 'CONFIRMED'
-            ))
-            AND (CAST(:categories AS bigint[]) IS NULL OR e.category_id IN (:categories))
-            ORDER BY 
-                CASE WHEN :sort = 'EVENT_DATE' THEN e.event_date END ASC,
+    @Query("""
+            SELECT e
+            FROM Event e
+            WHERE (:users IS NULL OR e.initiator.id IN :users)
+              AND (:states IS NULL OR e.state IN :states)
+              AND (CAST(:text AS string) IS NULL OR (LOWER(e.annotation) LIKE CAST(:text AS string) OR LOWER(e.description) LIKE CAST(:text AS string)))
+              AND (:paid IS NULL OR e.paid = :paid)
+              AND (CAST(:rangeStart AS timestamp) IS NULL OR e.eventDate >= :rangeStart)
+              AND (CAST(:rangeEnd AS timestamp) IS NULL OR e.eventDate <= :rangeEnd)
+              AND (:onlyAvailable = FALSE OR e.participantLimit = 0 OR e.participantLimit > (
+                  SELECT COUNT(r.id)
+                  FROM ParticipationRequest r
+                  WHERE r.event.id = e.id AND r.status = ru.practicum.main.request.model.RequestStatus.CONFIRMED
+              ))
+              AND (:categories IS NULL OR e.category.id IN :categories)
+            ORDER BY
+                CASE WHEN :sort = 'EVENT_DATE' THEN e.eventDate END ASC,
                 e.id ASC
-            OFFSET :from
-            LIMIT :size
-            """, nativeQuery = true)
+            """)
     List<Event> findAllWithParams(
             @Param("text") String text,
             @Param("categories") List<Long> categories,
@@ -63,8 +59,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             @Param("sort") String sort,
             @Param("users") List<Long> users,
             @Param("states") List<String> states,
-            @Param("from") Integer from,
-            @Param("size") Integer size
+            Pageable pageable
     );
 
     Optional<Event> findByIdAndState(Long id, EventState state);

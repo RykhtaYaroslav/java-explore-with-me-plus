@@ -65,13 +65,20 @@ public class RequestServiceImpl implements RequestService {
 
         RequestStatus startStatus = RequestStatus.PENDING;
 
-        if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
+        Integer limit = event.getParticipantLimit();
+        if (limit > 0) {
+            long confirmedCount = requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
+            if (confirmedCount >= limit) {
+                throw new ConflictException("На это событие больше нет свободных мест!");
+            }
+        }
+        if (limit == 0 || !event.getRequestModeration()) {
             startStatus = RequestStatus.CONFIRMED;
         } else {
 
             long confirmedCount = requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
 
-            if (confirmedCount >= event.getParticipantLimit()) {
+            if (confirmedCount >= limit) {
                 throw new ConflictException("На это событие больше нет свободных мест!");
             }
         }

@@ -1,8 +1,11 @@
 package ru.practicum.main.event.service.privateapi;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import ru.practicum.main.category.model.Category;
 import ru.practicum.main.category.repository.CategoryRepository;
 import ru.practicum.main.event.dto.EventFullDto;
@@ -73,7 +76,9 @@ public class EventServicePrivateImpl implements EventServicePrivate {
     public List<EventShortDto> findAllByInitiatorId(Long userId, Integer from, Integer size) {
         getUser(userId); // only for user existence checking
 
-        List<Event> events = eventRepository.findByInitiatorId(userId, from, size);
+        Pageable pageable = PageRequest.of(from / size, size);
+
+        List<Event> events = eventRepository.findByInitiatorId(userId, pageable);
 
         if (events.isEmpty()) {
             return Collections.emptyList();
@@ -158,7 +163,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
     public EventRequestStatusUpdateResult changeRequestsStatus(Long userId, Long eventId, EventRequestStatusUpdateRequest incomingRequestDto) {
         Event event = getEventByIdAndInitiator(userId, eventId); // Validate event by user and throws exception if no access
         Long confReq = getConfirmedRequestsAmountOrThrow(event); // throws exception if no need to confirm or limit has reached
-        List<ParticipationRequest> participationRequests = getRequestsIfExistOrThrow(incomingRequestDto); //returns list of requests or throw exception if not found by id
+        List<ParticipationRequest> participationRequests = getRequestsIfExistOrThrow(incomingRequestDto, eventId); //returns list of requests or throw exception if not found by id
 
         checkStatusIsPendingOrThrow(participationRequests);
 
@@ -259,7 +264,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
         switch (stateActionUser) {
             case CANCEL_REVIEW -> event.setState(EventState.CANCELED);
             case SEND_TO_REVIEW -> event.setState(EventState.PENDING);
-            case null, default -> {/*Do nothing*/}
+            case null, default -> { /*Do nothing*/ }
         }
     }
 
@@ -275,8 +280,13 @@ public class EventServicePrivateImpl implements EventServicePrivate {
      * @return a {@link List} of found {@link ParticipationRequest} entities
      * @throws NotFoundException if any of the specified request IDs are not found in the database
      */
-    private List<ParticipationRequest> getRequestsIfExistOrThrow(EventRequestStatusUpdateRequest incomingRequestDto) {
+    private List<ParticipationRequest> getRequestsIfExistOrThrow(EventRequestStatusUpdateRequest incomingRequestDto, Long eventId) {
         List<Long> requestIds = incomingRequestDto.getRequestsIds();
+
+        if (CollectionUtils.isEmpty(requestIds)) {
+            return requestRepository.findAllByEventId(eventId);
+        }
+
         Set<Long> uniqueIds = new HashSet<>(requestIds);
         List<ParticipationRequest> participationRequests = requestRepository.findAllById(uniqueIds);
 
@@ -299,11 +309,13 @@ public class EventServicePrivateImpl implements EventServicePrivate {
     private List<ParticipationRequest> rejectAllOtherPendingRequests(EventRequestStatusUpdateRequest incomingRequestDto, Long eventId) {
         List<ParticipationRequest> allRequests = requestRepository.findAllByEventId(eventId);
 
-        Set<Long> requestsIds = new HashSet<>(incomingRequestDto.getRequestsIds());
+        List<Long> requestsIds = incomingRequestDto.getRequestsIds();
+
+        Set<Long> uniqueIds = requestsIds == null ? Collections.emptySet() : new HashSet<>(incomingRequestDto.getRequestsIds());
 
         List<ParticipationRequest> rejected = allRequests.stream()
                 .filter(request -> request.getStatus() == RequestStatus.PENDING)
-                .filter(request -> !requestsIds.contains(request.getId()))
+                .filter(request -> !uniqueIds.contains(request.getId()))
                 .toList();
 
         rejected.forEach(request -> request.setStatus(RequestStatus.REJECTED));
