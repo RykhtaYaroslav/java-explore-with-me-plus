@@ -44,7 +44,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDto updateCategory(CategoryDto category, long catId) {
         Category ct = checkAndReturnCategory(catId);
-        if (categoryRepository.findByName(category.getName()) != null) {
+        if (categoryRepository.findByName(category.getName()) != null && !ct.getName().equals(category.getName())) {
             throw new ConflictException("Данная категория уже существует!");
         }
         ct.setName(category.getName());

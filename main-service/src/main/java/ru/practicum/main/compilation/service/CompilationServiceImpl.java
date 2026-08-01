@@ -1,5 +1,6 @@
 package ru.practicum.main.compilation.service;
 
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,10 +31,15 @@ public class CompilationServiceImpl implements CompilationService {
         if (compilationRepository.existsByTitle(compilation.getTitle())) {
             throw new ConflictException("Подборка с заголовком = " + compilation.getTitle() + " уже существует");
         }
+        Compilation comp;
+        if (compilation.getEvents() != null) {
+            List<Event> events = eventRepository.findAllById(compilation.getEvents());
 
-        List<Event> events = eventRepository.findAllById(compilation.getEvents());
-
-        Compilation comp = mapper.toCompilation(compilation, events);
+            comp = mapper.toCompilation(compilation, events);
+        }
+        else {
+            comp = mapper.toCompilation(compilation);
+        }
         return mapper.toDto(compilationRepository.save(comp));
     }
 

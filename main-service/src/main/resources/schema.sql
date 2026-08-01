@@ -36,10 +36,10 @@ CREATE TABLE IF NOT EXISTS compilations (
 );
 
 CREATE TABLE IF NOT EXISTS compilation_events (
-    compilation_id BIGINT NOT NULL,
+    compilations_id BIGINT NOT NULL,
     event_id BIGINT NOT NULL,
-    PRIMARY KEY (compilation_id, event_id),
-    FOREIGN KEY (compilation_id) REFERENCES compilations(id) ON DELETE CASCADE,
+    PRIMARY KEY (compilations_id, event_id),
+    FOREIGN KEY (compilations_id) REFERENCES compilations(id) ON DELETE CASCADE,
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );
 
