@@ -1,8 +1,11 @@
 package ru.practicum.main.event.service.privateapi;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import ru.practicum.main.category.model.Category;
 import ru.practicum.main.category.repository.CategoryRepository;
 import ru.practicum.main.event.dto.EventFullDto;
@@ -73,7 +76,9 @@ public class EventServicePrivateImpl implements EventServicePrivate {
     public List<EventShortDto> findAllByInitiatorId(Long userId, Integer from, Integer size) {
         getUser(userId); // only for user existence checking
 
-        List<Event> events = eventRepository.findByInitiatorId(userId, from, size);
+        Pageable pageable = PageRequest.of(from / size, size);
+
+        List<Event> events = eventRepository.findByInitiatorId(userId, pageable);
 
         if (events.isEmpty()) {
             return Collections.emptyList();
@@ -277,6 +282,11 @@ public class EventServicePrivateImpl implements EventServicePrivate {
      */
     private List<ParticipationRequest> getRequestsIfExistOrThrow(EventRequestStatusUpdateRequest incomingRequestDto) {
         List<Long> requestIds = incomingRequestDto.getRequestsIds();
+
+        if (CollectionUtils.isEmpty(requestIds)) {
+            return Collections.emptyList();
+        }
+
         Set<Long> uniqueIds = new HashSet<>(requestIds);
         List<ParticipationRequest> participationRequests = requestRepository.findAllById(uniqueIds);
 

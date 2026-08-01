@@ -1,6 +1,8 @@
 package ru.practicum.main.event.service.adminapi;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main.category.model.Category;
@@ -61,6 +63,8 @@ public class EventServiceAdminImpl implements EventServiceAdmin {
 
         String sort = (params.sort() != null) ? params.sort().name() : null;
 
+        Pageable pageable = PageRequest.of(params.from() / params.size(), params.size());
+
         return eventRepository.findAllWithParams(
                 params.text(),
                 params.categories(),
@@ -71,8 +75,7 @@ public class EventServiceAdminImpl implements EventServiceAdmin {
                 sort,
                 params.users(),
                 states,
-                params.from(),
-                params.size());
+                pageable);
     }
 
     private void updateEventFromNotNullDtoFields(UpdateEventAdminRequest request, Event event) {
