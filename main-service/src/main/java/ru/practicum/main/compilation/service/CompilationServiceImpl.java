@@ -2,7 +2,6 @@ package ru.practicum.main.compilation.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.main.category.model.Category;
 import ru.practicum.main.compilation.dto.CompilationDto;
 import ru.practicum.main.compilation.dto.CompilationMapper;
 import ru.practicum.main.compilation.dto.NewCompilationDto;
