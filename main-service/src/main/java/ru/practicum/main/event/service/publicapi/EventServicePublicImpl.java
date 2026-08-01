@@ -86,7 +86,7 @@ public class EventServicePublicImpl implements EventServicePublic {
      * @return a {@link List} of filtered {@link Event} entities matching the specified criteria
      */
     private List<Event> getEventsWithParamsFromRepository(EventQueryParams params) {
-        String text = (params.text() == null || params.text().isBlank()) ? null : String.format("%%%s%%", params.text());
+        String text = (params.text() == null || params.text().isBlank()) ? null : params.text().toLowerCase();
 
         List<Long> categories = CollectionUtils.isEmpty(params.categories()) ? null : params.categories();
 

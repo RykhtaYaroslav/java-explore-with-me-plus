@@ -35,7 +35,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             FROM Event e
             WHERE (:users IS NULL OR e.initiator.id IN :users)
               AND (:states IS NULL OR e.state IN :states)
-              AND (:text IS NULL OR (LOWER(e.annotation) LIKE LOWER(:text) OR LOWER(e.description) LIKE LOWER(:text)))
+              AND (CAST(:text AS string) IS NULL OR (LOWER(e.annotation) LIKE CAST(:text AS string) OR LOWER(e.description) LIKE CAST(:text AS string)))
               AND (:paid IS NULL OR e.paid = :paid)
               AND (CAST(:rangeStart AS timestamp) IS NULL OR e.eventDate >= :rangeStart)
               AND (CAST(:rangeEnd AS timestamp) IS NULL OR e.eventDate <= :rangeEnd)
