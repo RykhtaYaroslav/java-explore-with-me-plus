@@ -37,10 +37,10 @@ public class PublicEventController {
             @RequestParam(required = false) Boolean paid,
             @RequestParam(required = false) @DateTimeFormat(pattern = DATE_TIME_FORMAT) LocalDateTime rangeStart,
             @RequestParam(required = false) @DateTimeFormat(pattern = DATE_TIME_FORMAT) LocalDateTime rangeEnd,
-            @RequestParam(required = false, defaultValue = "false") Boolean onlyAvailable,
+            @RequestParam(defaultValue = "false") Boolean onlyAvailable,
             @RequestParam(required = false) EventSort sort,
-            @RequestParam(required = false, defaultValue = "0") @PositiveOrZero(message = "Query parameter \"from\" must be positive or zero") Integer from,
-            @RequestParam(required = false, defaultValue = "10") @Positive(message = "Query parameter \"size\" must be positive") Integer size,
+            @RequestParam(defaultValue = "0") @PositiveOrZero(message = "Query parameter \"from\" must be positive or zero") Integer from,
+            @RequestParam(defaultValue = "10") @Positive(message = "Query parameter \"size\" must be positive") Integer size,
             HttpServletRequest request) {
         if (rangeStart == null) {
             rangeStart = LocalDateTime.now();
