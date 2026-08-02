@@ -2,6 +2,7 @@ package ru.practicum.main.event.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main.event.dto.EventFullDto;
 import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.mapper.EventMapper;
@@ -22,6 +23,7 @@ import static java.time.LocalDateTime.now;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class EventStatsCollectorImpl implements EventStatsCollector {
     private final StatsClient statsRepository;
     private final RequestRepository requestRepository;
