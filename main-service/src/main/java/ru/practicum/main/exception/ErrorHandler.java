@@ -44,23 +44,6 @@ public class ErrorHandler {
         return buildValidationResponse(message);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleAnyException(Exception e) {
-        // Собираем сообщение ошибки и хотя бы первую строчку стектрейса
-        String rootCause = e.getMessage();
-        if (e.getCause() != null) {
-            rootCause += " -> " + e.getCause().getMessage();
-        }
-
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .status(HttpStatus.INTERNAL_SERVER_ERROR.name())
-                .reason(e.getClass().getName()) // Покажет точный класс ошибки (например, NullPointerException)
-                .message(rootCause)            // Покажет детали
-                .timestamp(now())
-                .build();
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException e) {
@@ -82,5 +65,23 @@ public class ErrorHandler {
                 .build();
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleAnyException(Exception e) {
+        // Собираем сообщение ошибки и хотя бы первую строчку стектрейса
+        String rootCause = e.getMessage();
+        if (e.getCause() != null) {
+            rootCause += " -> " + e.getCause().getMessage();
+        }
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.name())
+                .reason(e.getClass().getName()) // Покажет точный класс ошибки (например, NullPointerException)
+                .message(rootCause)            // Покажет детали
+                .timestamp(now())
+                .build();
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
