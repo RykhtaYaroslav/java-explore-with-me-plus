@@ -40,8 +40,8 @@ public class AdminEventController {
             @RequestParam(required = false) List<@Positive(message = "Categories ids should be positive") Long> categories,
             @RequestParam(required = false) @DateTimeFormat(pattern = DATE_TIME_FORMAT) LocalDateTime rangeStart,
             @RequestParam(required = false) @DateTimeFormat(pattern = DATE_TIME_FORMAT) LocalDateTime rangeEnd,
-            @RequestParam(required = false, defaultValue = "0") @PositiveOrZero(message = "Parameter \"from\" should be positive or zero") Integer from,
-            @RequestParam(required = false, defaultValue = "10") @Positive(message = "Query parameter \"size\" must be positive") Integer size) {
+            @RequestParam(defaultValue = "0") @PositiveOrZero(message = "Parameter \"from\" should be positive or zero") Integer from,
+            @RequestParam(defaultValue = "10") @Positive(message = "Query parameter \"size\" must be positive") Integer size) {
 
         if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
             throw new BadRequestException("Start date cannot be after end date");
