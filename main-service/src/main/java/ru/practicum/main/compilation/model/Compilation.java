@@ -46,7 +46,7 @@ public class Compilation {
     @ManyToMany
     @JoinTable(
             name = "compilation_events",
-            joinColumns = @JoinColumn(name = "compilation_id"),
+            joinColumns = @JoinColumn(name = "compilations_id"),
             inverseJoinColumns = @JoinColumn(name = "event_id")
     )
     @ToString.Exclude
