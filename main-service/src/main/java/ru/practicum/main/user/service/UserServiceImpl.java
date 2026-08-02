@@ -2,6 +2,7 @@ package ru.practicum.main.user.service;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main.exception.ConflictException;
 import ru.practicum.main.exception.NotFoundException;
 import ru.practicum.main.user.dto.NewUserRequest;
@@ -15,11 +16,13 @@ import java.util.Objects;
 
 @AllArgsConstructor
 @Service
+@Transactional
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper mapper;
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserDto> getUsers(List<Long> ids, int from, int size) {
         if (ids == null) {
             return userRepository.getUsersWithoutIds(from, size).stream()
