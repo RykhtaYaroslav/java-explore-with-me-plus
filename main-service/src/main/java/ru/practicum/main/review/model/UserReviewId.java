@@ -14,7 +14,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class UserReviewId implements Serializable {
-    private Long raterId;
-    private Long targetId;
-    private Long eventId;
+    private Long rater;
+    private Long target;
+    private Long event;
 }

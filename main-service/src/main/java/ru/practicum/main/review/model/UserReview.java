@@ -2,36 +2,44 @@ package ru.practicum.main.review.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.proxy.HibernateProxy;
+import ru.practicum.main.event.model.Event;
+import ru.practicum.main.user.model.User;
 
 import java.util.Objects;
 
 @Table(name = "users_reviews")
 @Entity
-@IdClass(UserReview.class)
+@IdClass(UserReviewId.class)
 @Getter
 @Setter
-@ToString
+@ToString(exclude = {"rater", "target", "event"})
 @RequiredArgsConstructor
 public class UserReview {
     @Id
-    @Column(name = "rater_id")
-    private Long raterId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rater_id")
+    private User rater;
 
     @Id
-    @Column(name = "target_id")
-    private Long targetId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_id")
+    private User target;
 
     @Id
-    @Column(name = "event_id")
-    private Long eventId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    private Event event;
 
     @Column(name = "score", nullable = false)
     private Integer score;
@@ -53,19 +61,13 @@ public class UserReview {
             return false;
         }
         UserReview that = (UserReview) o;
-        return getRaterId() != null && Objects.equals(getRaterId(), that.getRaterId())
-                && getTargetId() != null && Objects.equals(getTargetId(), that.getTargetId())
-                && getEventId() != null && Objects.equals(getEventId(), that.getEventId())
-                && getScore() != null && Objects.equals(getScore(), that.getScore())
-                && getComment() != null && Objects.equals(getComment(), that.getComment());
+        return getRater() != null && Objects.equals(getRater(), that.getRater())
+                && getTarget() != null && Objects.equals(getTarget(), that.getTarget())
+                && getEvent() != null && Objects.equals(getEvent(), that.getEvent());
     }
 
     @Override
     public final int hashCode() {
-        return Objects.hash(raterId,
-                targetId,
-                eventId,
-                score,
-                comment);
+        return Objects.hash(rater, target, event);
     }
 }
