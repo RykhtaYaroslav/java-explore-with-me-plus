@@ -2,34 +2,47 @@ package ru.practicum.main.review.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.proxy.HibernateProxy;
+import ru.practicum.main.event.model.Event;
+import ru.practicum.main.user.model.User;
 
 import java.util.Objects;
 
 import static ru.practicum.main.util.EwmConstants.MAX_REVIEW_COMMENT_LENGTH;
 
-@Getter
-@Setter
-@ToString
-@RequiredArgsConstructor
 @IdClass(EventReview.class)
 @Table(name = "events_reviews")
 @Entity
+@Getter
+@Setter
+@ToString(exclude = {"rater", "event"})
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class EventReview {
     @Id
-    @Column(name = "rater_id")
-    private Long raterId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rater_id")
+    @ToString.Exclude
+    private User rater;
 
     @Id
-    @Column(name = "event_id")
-    private Long eventId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id")
+    @ToString.Exclude
+    private Event event;
 
     @Column(name = "score", nullable = false)
     private Integer score;
@@ -51,16 +64,16 @@ public class EventReview {
             return false;
         }
         EventReview that = (EventReview) o;
-        return getRaterId() != null && Objects.equals(getRaterId(), that.getRaterId())
-                && getEventId() != null && Objects.equals(getEventId(), that.getEventId())
+        return getRater() != null && Objects.equals(getRater(), that.getRater())
+                && getEvent() != null && Objects.equals(getEvent(), that.getEvent())
                 && getScore() != null && Objects.equals(getScore(), that.getScore())
                 && getComment() != null && Objects.equals(getComment(), that.getComment());
     }
 
     @Override
     public final int hashCode() {
-        return Objects.hash(raterId,
-                eventId,
+        return Objects.hash(rater,
+                event,
                 score,
                 comment);
     }
