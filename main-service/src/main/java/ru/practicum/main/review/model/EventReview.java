@@ -13,6 +13,8 @@ import org.hibernate.proxy.HibernateProxy;
 
 import java.util.Objects;
 
+import static ru.practicum.main.util.EwmConstants.MAX_REVIEW_COMMENT_LENGTH;
+
 @Getter
 @Setter
 @ToString
@@ -32,7 +34,7 @@ public class EventReview {
     @Column(name = "score", nullable = false)
     private Integer score;
 
-    @Column(name = "comment", length = 200)
+    @Column(name = "comment", length = MAX_REVIEW_COMMENT_LENGTH)
     private String comment;
 
     @Override
