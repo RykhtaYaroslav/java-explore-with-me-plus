@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main.exception.ConflictException;
 import ru.practicum.main.exception.NotFoundException;
+import ru.practicum.main.review.repository.UserReviewRepository;
 import ru.practicum.main.user.dto.NewUserRequest;
 import ru.practicum.main.user.dto.UserDto;
 import ru.practicum.main.user.dto.UserMapper;
@@ -20,20 +21,27 @@ import java.util.Objects;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper mapper;
+    private final UserReviewRepository reviewRepository;
 
     @Override
     @Transactional(readOnly = true)
     public List<UserDto> getUsers(List<Long> ids, int from, int size) {
+        List<User> users;
         if (ids == null) {
-            return userRepository.getUsersWithoutIds(from, size).stream()
-                    .map(mapper::toUserDtoOut)
+            users = userRepository.getUsersWithoutIds(from, size);
+        } else {
+            users = userRepository.findAllById(ids).stream()
+                    .filter(Objects::nonNull)
                     .toList();
         }
-        //По тз непонятно будут ли передаваться id юзеров которых нет(хотя ответа 404 нет в спецификации)
-        //Но лучше всего сделать проверку на null
-        return userRepository.findAllById(ids).stream()
-                .filter(Objects::nonNull)
-                .map(mapper::toUserDtoOut)
+
+        return users.stream()
+                .map(user -> {
+                    UserDto dto = mapper.toUserDtoOut(user);
+                    Double rating = reviewRepository.findAverageScoreByTargetId(user.getId());
+                    dto.setRating(rating != null ? rating : 0.0);
+                    return dto;
+                })
                 .toList();
     }
 
