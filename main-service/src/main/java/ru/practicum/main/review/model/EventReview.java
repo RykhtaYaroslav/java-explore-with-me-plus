@@ -35,13 +35,11 @@ public class EventReview {
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rater_id")
-    @ToString.Exclude
     private User rater;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "event_id")
-    @ToString.Exclude
     private Event event;
 
     @Column(name = "score", nullable = false)
