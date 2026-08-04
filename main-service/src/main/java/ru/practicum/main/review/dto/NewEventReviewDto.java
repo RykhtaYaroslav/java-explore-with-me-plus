@@ -3,7 +3,6 @@ package ru.practicum.main.review.dto;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,9 +18,6 @@ import static ru.practicum.main.util.EwmConstants.MIN_REVIEW_SCORE;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NewEventReviewDto {
-    @NotNull(message = "Event id can't be null")
-    @Positive(message = "Event id must be positive")
-    private Long eventId;
 
     @NotNull(message = "Review score can't be empty")
     @Min(value = MIN_REVIEW_SCORE, message = "Score must be from {value} to " + MAX_REVIEW_SCORE)

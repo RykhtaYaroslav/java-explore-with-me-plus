@@ -19,10 +19,6 @@ import static ru.practicum.main.util.EwmConstants.MIN_REVIEW_SCORE;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NewUserReviewDto {
-    @NotNull(message = "Target user id can't be null")
-    @Positive(message = "Target user id must be positive")
-    private Long targetId;
-
     @NotNull(message = "Event id can't be null")
     @Positive(message = "Event id must be positive")
     private Long eventId;
