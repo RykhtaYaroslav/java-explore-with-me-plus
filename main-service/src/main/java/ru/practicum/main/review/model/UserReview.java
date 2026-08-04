@@ -8,8 +8,10 @@ import jakarta.persistence.IdClass;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.proxy.HibernateProxy;
@@ -24,7 +26,9 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString(exclude = {"rater", "target", "event"})
-@RequiredArgsConstructor
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserReview {
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
