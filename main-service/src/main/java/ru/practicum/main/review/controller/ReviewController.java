@@ -1,6 +1,7 @@
 package ru.practicum.main.review.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ public class ReviewController {
     @PostMapping("/author/{authorId}")
     @ResponseStatus(HttpStatus.CREATED)
     public OutputUserReviewDto createAuthorReview(@Valid @RequestBody NewUserReviewDto review,
-                                                  @PathVariable long authorId) {
+                                                  @Positive @PathVariable long authorId) {
         return reviewService.createAuthorReview(review, authorId);
     }
 }

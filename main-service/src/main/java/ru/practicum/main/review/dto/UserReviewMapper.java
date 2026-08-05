@@ -6,10 +6,10 @@ import ru.practicum.main.review.model.UserReview;
 
 @Mapper(componentModel = "spring")
 public interface UserReviewMapper {
-    @Mapping(target = "raterId", source = "rater")
-    @Mapping(target = "eventId", source = "event")
-    @Mapping(target = "targetId", ignore = true)
-    UserReview toUserReview(NewUserReviewDto dto);
+    @Mapping(target = "raterId", source = "dto.rater")
+    @Mapping(target = "eventId", source = "dto.event")
+    @Mapping(target = "targetId", source = "targetId")
+    UserReview toUserReview(NewUserReviewDto dto, Long targetId);
 
     OutputUserReviewDto toOutReviewDto(UserReview review);
 }

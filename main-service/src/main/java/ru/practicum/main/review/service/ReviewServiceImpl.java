@@ -49,8 +49,7 @@ public class ReviewServiceImpl implements ReviewService {
             throw new ConflictException("Данный пользователь уже ставил лайк данному автору на данном мероприятии");
         }
 
-        UserReview rev = mapper.toUserReview(review);
-        rev.setTargetId(authorId);
+        UserReview rev = mapper.toUserReview(review, authorId);
         return mapper.toOutReviewDto(userReviewRepository.save(rev));
     }
 
