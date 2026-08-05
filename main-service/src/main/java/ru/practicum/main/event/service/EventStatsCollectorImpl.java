@@ -38,8 +38,17 @@ public class EventStatsCollectorImpl implements EventStatsCollector {
     public List<EventShortDto> getShortDtoListWithStats(List<Event> events) {
         Map<Long, Long> viewsByEventMap = getViewsByEventMap(events);
         Map<Long, Long> confirmedRequestsByEventMap = getConReqByEventMap(events);
+        Map<Long, BigDecimal> ratingByEventMap = getRatingMap(events);
 
-        return events.stream().map(event -> saturateEventShortDto(event, viewsByEventMap, confirmedRequestsByEventMap)).toList();
+        return events.stream()
+                .map(event -> {
+                    Long id = event.getId();
+                    return eventMapper.toShortDto(event,
+                            viewsByEventMap.getOrDefault(id, 0L),
+                            confirmedRequestsByEventMap.getOrDefault(id, 0L),
+                            ratingByEventMap.getOrDefault(id, BigDecimal.ZERO));
+                })
+                .toList();
     }
 
     @Override
@@ -132,22 +141,6 @@ public class EventStatsCollectorImpl implements EventStatsCollector {
                         ConfirmedRequestsCount::eventId,
                         ConfirmedRequestsCount::count
                 ));
-    }
-
-    /**
-     * Enriches an {@link Event} entity with its calculated views and confirmed requests
-     * and maps it to a short DTO representation.
-     *
-     * @param event                       the event entity to map
-     * @param viewsByEventMap             a map containing event IDs and their view counts
-     * @param confirmedRequestsByEventMap a map containing event IDs and their confirmed request counts
-     * @return the fully populated {@link EventShortDto}
-     */
-    private EventShortDto saturateEventShortDto(Event event, Map<Long, Long> viewsByEventMap, Map<Long, Long> confirmedRequestsByEventMap) {
-        Long views = viewsByEventMap.getOrDefault(event.getId(), 0L);
-        Long confirmedRequests = confirmedRequestsByEventMap.getOrDefault(event.getId(), 0L);
-
-        return eventMapper.toShortDto(event, views, confirmedRequests);
     }
 
     /**

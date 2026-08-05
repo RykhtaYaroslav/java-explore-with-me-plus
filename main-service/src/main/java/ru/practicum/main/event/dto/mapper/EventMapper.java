@@ -32,7 +32,7 @@ public interface EventMapper {
 
     EventFullDto toFullDto(Event event, Long views, Long confirmedRequests, BigDecimal rating);
 
-    EventShortDto toShortDto(Event event, Long views, Long confirmedRequests);
+    EventShortDto toShortDto(Event event, Long views, Long confirmedRequests, BigDecimal rating);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
