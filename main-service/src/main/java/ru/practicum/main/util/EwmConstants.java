@@ -5,7 +5,6 @@ import lombok.experimental.UtilityClass;
 import java.time.format.DateTimeFormatter;
 
 @UtilityClass
-@SuppressWarnings("unused")
 public final class EwmConstants {
     public static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
@@ -19,4 +18,8 @@ public final class EwmConstants {
 
     public static final int MIN_DESCRIPTION_LENGTH = 20;
     public static final int MAX_DESC_LENGTH = 7000;
+
+    public static final int MAX_REVIEW_COMMENT_LENGTH = 200;
+    public static final int MIN_REVIEW_SCORE = 1;
+    public static final int MAX_REVIEW_SCORE = 5;
 }

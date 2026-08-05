@@ -1,28 +1,33 @@
 package ru.practicum.main.review.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hibernate.validator.constraints.Range;
 
-@Getter
-@Setter
-@AllArgsConstructor
+import static ru.practicum.main.util.EwmConstants.MAX_REVIEW_COMMENT_LENGTH;
+import static ru.practicum.main.util.EwmConstants.MAX_REVIEW_SCORE;
+import static ru.practicum.main.util.EwmConstants.MIN_REVIEW_SCORE;
+
+@Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class NewUserReviewDto {
-    @NotNull
-    private Long rater;
+    @NotNull(message = "Event id can't be null")
+    @Positive(message = "Event id must be positive")
+    private Long eventId;
 
-    @NotNull
-    private Long event;
+    @NotNull(message = "Review score can't be empty")
+    @Min(value = MIN_REVIEW_SCORE, message = "Score must be from {value} to " + MAX_REVIEW_SCORE)
+    @Max(value = MAX_REVIEW_SCORE, message = "Score must be from " + MIN_REVIEW_SCORE + " to {value}")
+    private Integer score;
 
-    @NotNull
-    @Range(min = 1, max = 5, message = "Оценка должна быть в диапазоне от 1 до 5")
-    private int score;
-
-    @NotBlank
+    @Size(max = MAX_REVIEW_COMMENT_LENGTH)
     private String comment;
 }
