@@ -31,6 +31,7 @@ import ru.practicum.main.user.model.User;
 import ru.practicum.main.user.repository.UserRepository;
 import ru.practicum.stats.client.StatsClient;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,7 +69,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
 
         event = eventRepository.save(event);
 
-        return eventMapper.toFullDto(event, 0L, 0L);
+        return eventMapper.toFullDto(event, 0L, 0L, BigDecimal.ZERO);
     }
 
     @Override

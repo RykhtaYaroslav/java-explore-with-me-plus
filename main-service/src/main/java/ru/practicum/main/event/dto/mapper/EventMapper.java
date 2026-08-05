@@ -16,6 +16,7 @@ import ru.practicum.main.event.model.Event;
 import ru.practicum.main.event.model.Location;
 import ru.practicum.main.user.model.User;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Mapper(componentModel = "spring", imports = LocalDateTime.class)
@@ -29,7 +30,7 @@ public interface EventMapper {
 
     Location toLocation(LocationDto locationDto);
 
-    EventFullDto toFullDto(Event event, Long views, Long confirmedRequests);
+    EventFullDto toFullDto(Event event, Long views, Long confirmedRequests, BigDecimal rating);
 
     EventShortDto toShortDto(Event event, Long views, Long confirmedRequests);
 

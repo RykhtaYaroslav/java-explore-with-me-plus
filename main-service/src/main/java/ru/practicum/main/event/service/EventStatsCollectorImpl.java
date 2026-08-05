@@ -4,15 +4,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main.event.dto.EventFullDto;
+import ru.practicum.main.event.dto.EventRatingCount;
 import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.mapper.EventMapper;
 import ru.practicum.main.event.model.Event;
 import ru.practicum.main.request.dto.ConfirmedRequestsCount;
 import ru.practicum.main.request.model.RequestStatus;
 import ru.practicum.main.request.repository.RequestRepository;
+import ru.practicum.main.review.repository.EventReviewRepository;
 import ru.practicum.stats.client.StatsClient;
 import ru.practicum.stats.dto.ViewStatsDto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +30,7 @@ import static java.time.LocalDateTime.now;
 public class EventStatsCollectorImpl implements EventStatsCollector {
     private final StatsClient statsRepository;
     private final RequestRepository requestRepository;
+    private final EventReviewRepository eventReviewRepository;
 
     private final EventMapper eventMapper;
 
@@ -43,11 +47,14 @@ public class EventStatsCollectorImpl implements EventStatsCollector {
         Map<Long, Long> views = getViewsByEventMap(events);
         Map<Long, Long> confirmedRequests = getConReqByEventMap(events);
 
+        Map<Long, BigDecimal> ratings = getRatingMap(events);
+
         return events.stream()
                 .map(event -> eventMapper.toFullDto(
                         event,
                         views.getOrDefault(event.getId(), 0L),
-                        confirmedRequests.getOrDefault(event.getId(), 0L)
+                        confirmedRequests.getOrDefault(event.getId(), 0L),
+                        ratings.getOrDefault(event.getId(), BigDecimal.ZERO)
                 ))
                 .toList();
     }
@@ -141,5 +148,23 @@ public class EventStatsCollectorImpl implements EventStatsCollector {
         Long confirmedRequests = confirmedRequestsByEventMap.getOrDefault(event.getId(), 0L);
 
         return eventMapper.toShortDto(event, views, confirmedRequests);
+    }
+
+    /**
+     * Retrieves a mapping of event IDs to their average ratings for the specified list of events.
+     *
+     * @param events the list of events for which to calculate and fetch ratings
+     * @return a map where the key is the event ID and the value is its average rating
+     */
+    private Map<Long, BigDecimal> getRatingMap(List<Event> events) {
+        List<Long> eventIds = events.stream().map(Event::getId).toList();
+
+        List<EventRatingCount> eventRatingCountList = eventReviewRepository.countRatingByIds(eventIds);
+
+        return eventRatingCountList.stream()
+                .collect(Collectors.toMap(
+                        EventRatingCount::eventId,
+                        EventRatingCount::rating
+                ));
     }
 }

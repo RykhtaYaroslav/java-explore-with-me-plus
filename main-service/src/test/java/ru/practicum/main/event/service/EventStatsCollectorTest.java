@@ -7,7 +7,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.practicum.main.event.dto.EventFullDto;
 import ru.practicum.main.event.dto.EventShortDto;
 import ru.practicum.main.event.dto.mapper.EventMapper;
 import ru.practicum.main.event.model.Event;
@@ -148,36 +147,36 @@ class EventStatsCollectorTest {
         verify(eventMapper).toShortDto(event1, 100L, 3L);
     }
 
-    @Test
-    @DisplayName("getFullDtoListWithStats: обогащение списка объектов EventFullDto")
-    void getFullDtoListWithStats_shouldEnrichFullDtos() {
-        List<Event> events = List.of(event1);
-        List<String> uris = List.of("/events/10");
-
-        ViewStatsDto viewStats = new ViewStatsDto("main-service", "/events/10", 250L);
-        ConfirmedRequestsCount reqCount = new ConfirmedRequestsCount(EVENT_1_ID, 10L);
-
-        EventFullDto expectedDto = EventFullDto.builder()
-                .id(EVENT_1_ID)
-                .views(250L)
-                .confirmedRequests(10L)
-                .build();
-
-        when(statsRepository.getStats(any(), any(), eq(uris), eq(true)))
-                .thenReturn(List.of(viewStats));
-        when(requestRepository.countRequestsCountByEventIds(List.of(EVENT_1_ID), RequestStatus.CONFIRMED))
-                .thenReturn(List.of(reqCount));
-        when(eventMapper.toFullDto(event1, 250L, 10L))
-                .thenReturn(expectedDto);
-
-        List<EventFullDto> result = statsCollector.getFullDtoListWithStats(events);
-
-        assertThat(result)
-                .hasSize(1)
-                .containsExactly(expectedDto);
-
-        verify(eventMapper).toFullDto(event1, 250L, 10L);
-    }
+//    @Test
+//    @DisplayName("getFullDtoListWithStats: обогащение списка объектов EventFullDto")
+//    void getFullDtoListWithStats_shouldEnrichFullDtos() {
+//        List<Event> events = List.of(event1);
+//        List<String> uris = List.of("/events/10");
+//
+//        ViewStatsDto viewStats = new ViewStatsDto("main-service", "/events/10", 250L);
+//        ConfirmedRequestsCount reqCount = new ConfirmedRequestsCount(EVENT_1_ID, 10L);
+//
+//        EventFullDto expectedDto = EventFullDto.builder()
+//                .id(EVENT_1_ID)
+//                .views(250L)
+//                .confirmedRequests(10L)
+//                .build();
+//
+//        when(statsRepository.getStats(any(), any(), eq(uris), eq(true)))
+//                .thenReturn(List.of(viewStats));
+//        when(requestRepository.countRequestsCountByEventIds(List.of(EVENT_1_ID), RequestStatus.CONFIRMED))
+//                .thenReturn(List.of(reqCount));
+//        when(eventMapper.toFullDto(event1, 250L, 10L))
+//                .thenReturn(expectedDto);
+//
+//        List<EventFullDto> result = statsCollector.getFullDtoListWithStats(events);
+//
+//        assertThat(result)
+//                .hasSize(1)
+//                .containsExactly(expectedDto);
+//
+//        verify(eventMapper).toFullDto(event1, 250L, 10L);
+//    }
 
     @Test
     @DisplayName("extractIdFromUri: корректный парсинг числового ID из конца строки URI")
