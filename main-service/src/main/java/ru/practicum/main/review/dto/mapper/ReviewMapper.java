@@ -39,5 +39,5 @@ public interface ReviewMapper {
     @Mapping(target = "event", source = "event")
     @Mapping(target = "score", source = "userReview.score")
     @Mapping(target = "comment", source = "userReview.comment")
-    OutputUserReviewDto toUserReviewOutDto (UserReview userReview, UserShortDto rater, UserShortDto target, EventShortDto event);
+    OutputUserReviewDto toUserReviewOutDto(UserReview userReview, UserShortDto rater, UserShortDto target, EventShortDto event);
 }
