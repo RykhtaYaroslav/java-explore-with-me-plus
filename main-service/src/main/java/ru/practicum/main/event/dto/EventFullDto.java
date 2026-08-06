@@ -9,6 +9,7 @@ import ru.practicum.main.category.dto.CategoryDto;
 import ru.practicum.main.event.model.EventState;
 import ru.practicum.main.user.dto.UserShortDto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static ru.practicum.main.util.EwmConstants.DATE_TIME_FORMAT;
@@ -41,4 +42,5 @@ public class EventFullDto {
     private EventState state;
     private Long confirmedRequests;
     private Long views;
+    private BigDecimal rating;
 }
