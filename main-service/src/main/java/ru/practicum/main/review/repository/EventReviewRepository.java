@@ -12,7 +12,7 @@ import java.util.List;
 public interface EventReviewRepository extends JpaRepository<EventReview, EventReviewId> {
 
     @Query("""
-            SELECT new ru.practicum.main.event.dto.EventRatingCount(er.event.id, CAST(AVG(er.score) AS BigDecimal))
+            SELECT new ru.practicum.main.event.dto.EventRatingCount(er.event.id, AVG(er.score))
             FROM EventReview er
             WHERE er.event.id IN :eventIds
             GROUP BY er.event.id

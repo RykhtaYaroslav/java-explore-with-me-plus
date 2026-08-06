@@ -15,7 +15,6 @@ import ru.practicum.main.review.repository.EventReviewRepository;
 import ru.practicum.stats.client.StatsClient;
 import ru.practicum.stats.dto.ViewStatsDto;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +37,7 @@ public class EventStatsCollectorImpl implements EventStatsCollector {
     public List<EventShortDto> getShortDtoListWithStats(List<Event> events) {
         Map<Long, Long> viewsByEventMap = getViewsByEventMap(events);
         Map<Long, Long> confirmedRequestsByEventMap = getConReqByEventMap(events);
-        Map<Long, BigDecimal> ratingByEventMap = getRatingMap(events);
+        Map<Long, Double> ratingByEventMap = getRatingMap(events);
 
         return events.stream()
                 .map(event -> {
@@ -46,7 +45,7 @@ public class EventStatsCollectorImpl implements EventStatsCollector {
                     return eventMapper.toShortDto(event,
                             viewsByEventMap.getOrDefault(id, 0L),
                             confirmedRequestsByEventMap.getOrDefault(id, 0L),
-                            ratingByEventMap.getOrDefault(id, BigDecimal.ZERO));
+                            ratingByEventMap.getOrDefault(id, 5.0));
                 })
                 .toList();
     }
@@ -56,14 +55,14 @@ public class EventStatsCollectorImpl implements EventStatsCollector {
         Map<Long, Long> views = getViewsByEventMap(events);
         Map<Long, Long> confirmedRequests = getConReqByEventMap(events);
 
-        Map<Long, BigDecimal> ratings = getRatingMap(events);
+        Map<Long, Double> ratings = getRatingMap(events);
 
         return events.stream()
                 .map(event -> eventMapper.toFullDto(
                         event,
                         views.getOrDefault(event.getId(), 0L),
                         confirmedRequests.getOrDefault(event.getId(), 0L),
-                        ratings.getOrDefault(event.getId(), BigDecimal.ZERO)
+                        ratings.getOrDefault(event.getId(), 5.0)
                 ))
                 .toList();
     }
@@ -149,7 +148,7 @@ public class EventStatsCollectorImpl implements EventStatsCollector {
      * @param events the list of events for which to calculate and fetch ratings
      * @return a map where the key is the event ID and the value is its average rating
      */
-    private Map<Long, BigDecimal> getRatingMap(List<Event> events) {
+    private Map<Long, Double> getRatingMap(List<Event> events) {
         List<Long> eventIds = events.stream().map(Event::getId).toList();
 
         List<EventRatingCount> eventRatingCountList = eventReviewRepository.countRatingByIds(eventIds);

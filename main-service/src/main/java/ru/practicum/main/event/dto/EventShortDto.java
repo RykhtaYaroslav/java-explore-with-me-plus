@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import ru.practicum.main.category.dto.CategoryDto;
 import ru.practicum.main.user.dto.UserShortDto;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static ru.practicum.main.util.EwmConstants.DATE_TIME_FORMAT;
@@ -31,5 +30,5 @@ public class EventShortDto {
     private UserShortDto initiator;
     private Boolean paid;
     private Long views;
-    private BigDecimal rating;
+    private Double rating;
 }
