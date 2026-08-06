@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS users_reviews (
     target_id BIGINT NOT NULL, -- Тот, кому ставят оценку
     event_id BIGINT NOT NULL, -- id event'a. Все эти три поля - составной первичный ключ
     score INT NOT NULL CHECK (score >= 1 AND score <= 5), -- Сама оценка (от 1 до 5)
-    comment VARCHAR(200),
+    comment VARCHAR(200) NOT NULL,
 
     CONSTRAINT pk_users_reviewes PRIMARY KEY (rater_id, target_id, event_id), -- составной первичный ключ
 
