@@ -22,4 +22,6 @@ public final class EwmConstants {
     public static final int MAX_REVIEW_COMMENT_LENGTH = 200;
     public static final int MIN_REVIEW_SCORE = 1;
     public static final int MAX_REVIEW_SCORE = 5;
+
+    public static final int HOURS_OFFSET_FOR_REVIEWS_CREATING = 2;
 }

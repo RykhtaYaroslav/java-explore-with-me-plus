@@ -10,5 +10,16 @@ public interface UserReviewRepository extends JpaRepository<UserReview, UserRevi
     @Query("SELECT AVG(ur.score) FROM UserReview ur WHERE ur.target.id = :userId")
     Double findAverageScoreByTargetId(@Param("userId") Long userId);
 
-    boolean existsUserReviewByRaterIdAndEventIdAndTargetId(long raterId, long eventId, long targetId);
+    @Query("""
+        SELECT COUNT(ur) > 0 
+        FROM UserReview ur 
+        WHERE ur.rater.id = :raterId 
+          AND ur.event.id = :eventId 
+          AND ur.target.id = :targetId
+        """)
+    boolean existsByParams(
+            @Param("raterId") long raterId,
+            @Param("eventId") long eventId,
+            @Param("targetId") long targetId
+    );
 }

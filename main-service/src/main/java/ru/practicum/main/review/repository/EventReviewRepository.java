@@ -19,4 +19,15 @@ public interface EventReviewRepository extends JpaRepository<EventReview, EventR
             """)
     List<EventRatingCount> countRatingByIds(@Param("eventIds") List<Long> eventIds);
 
+    @Query("""
+            SELECT COUNT(er) > 0 
+            FROM EventReview er 
+            WHERE er.rater.id = :raterId 
+              AND er.event.id = :eventId
+            """)
+    boolean existsByParams(
+            @Param("raterId") long raterId,
+            @Param("eventId") long eventId
+    );
+
 }
