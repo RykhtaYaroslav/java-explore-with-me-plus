@@ -13,6 +13,7 @@ import ru.practicum.main.review.dto.OutputUserReviewDto;
 import ru.practicum.main.review.dto.UserReviewMapper;
 import ru.practicum.main.review.model.UserReview;
 import ru.practicum.main.review.repository.UserReviewRepository;
+import ru.practicum.main.user.model.User;
 import ru.practicum.main.user.repository.UserRepository;
 
 @Service
@@ -26,16 +27,15 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public OutputUserReviewDto createAuthorReview(NewUserReviewDto review, long authorId) {
-        Long raterId = review.getRater();
+        Long raterId = review.getRaterId();
 
-        checkUserExists(raterId);
-        checkUserExists(authorId);
-
-        Event event = eventRepository.findById(review.getEvent()).orElseThrow(()
-                -> new NotFoundException("Событие с id = " + review.getEvent() + " не найдено"));
+        User rater = checkAndReturnUser(raterId);
+        User target = checkAndReturnUser(authorId);
+        Event event = eventRepository.findById(review.getEventId())
+                .orElseThrow(() -> new NotFoundException("Событие с id = " + review.getEventId() + " не найдено"));
 
         if (event.getInitiator().getId() != authorId) {
-            throw new ConflictException("Юзер с id = " + authorId  + " не является создателем данного события");
+            throw new ConflictException("Юзер с id = " + authorId + " не является создателем данного события");
         }
 
         boolean isParticipant = requestRepository.existsByRequesterIdAndEventIdAndStatus(
@@ -46,15 +46,16 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         if (userReviewRepository.existsUserReviewByRaterIdAndEventIdAndTargetId(raterId, event.getId(), authorId)) {
-            throw new ConflictException("Данный пользователь уже ставил лайк данному автору на данном мероприятии");
+            throw new ConflictException("Данный пользователь уже ставил оценку данному автору на данном мероприятии");
         }
 
-        UserReview rev = mapper.toUserReview(review, authorId);
+        UserReview rev = mapper.toUserReview(review, rater, target, event);
+
         return mapper.toOutReviewDto(userReviewRepository.save(rev));
     }
 
-    private void checkUserExists(long userId) {
-        userRepository.findById(userId).orElseThrow(()
+    private User checkAndReturnUser(long userId) {
+        return userRepository.findById(userId).orElseThrow(()
                 -> new NotFoundException("Юзер с id = " + userId + " не найден"));
     }
 }

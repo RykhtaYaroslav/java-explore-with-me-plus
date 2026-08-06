@@ -7,7 +7,7 @@ import ru.practicum.main.review.model.UserReview;
 import ru.practicum.main.review.model.UserReviewId;
 
 public interface UserReviewRepository extends JpaRepository<UserReview, UserReviewId> {
-    @Query("SELECT AVG(ur.score) FROM UserReview ur WHERE ur.targetId = :userId")
+    @Query("SELECT AVG(ur.score) FROM UserReview ur WHERE ur.target.id = :userId")
     Double findAverageScoreByTargetId(@Param("userId") Long userId);
 
     boolean existsUserReviewByRaterIdAndEventIdAndTargetId(long raterId, long eventId, long targetId);
