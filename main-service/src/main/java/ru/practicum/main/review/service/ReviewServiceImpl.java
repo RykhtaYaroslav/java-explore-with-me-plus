@@ -19,6 +19,7 @@ import ru.practicum.main.review.model.EventReview;
 import ru.practicum.main.review.model.UserReview;
 import ru.practicum.main.review.repository.EventReviewRepository;
 import ru.practicum.main.review.repository.UserReviewRepository;
+import ru.practicum.main.time.TimeProvider;
 import ru.practicum.main.user.dto.UserMapper;
 import ru.practicum.main.user.model.User;
 import ru.practicum.main.user.repository.UserRepository;
@@ -26,7 +27,6 @@ import ru.practicum.main.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static java.time.LocalDateTime.now;
 import static ru.practicum.main.util.EwmConstants.HOURS_OFFSET_FOR_REVIEWS_CREATING;
 
 @Service
@@ -43,6 +43,8 @@ public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewMapper reviewMapper;
     private final UserMapper userMapper;
+
+    private final TimeProvider timeProvider;
 
     @Override
     public OutputUserReviewDto createAuthorReview(Long raterId, Long eventId, Long authorId, NewUserReviewDto request) {
@@ -128,7 +130,7 @@ public class ReviewServiceImpl implements ReviewService {
     private void validateDateTime(LocalDateTime eventDate) {
         LocalDateTime allowedTime = eventDate.plusHours(HOURS_OFFSET_FOR_REVIEWS_CREATING);
 
-        if (now().isBefore(allowedTime)) {
+        if (timeProvider.now().isBefore(allowedTime)) {
             String m = String.format("Оставить оценку событию можно только спустя %d часов после начала", HOURS_OFFSET_FOR_REVIEWS_CREATING);
             throw new ConflictException(m);
         }

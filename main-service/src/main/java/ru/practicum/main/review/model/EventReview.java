@@ -22,7 +22,7 @@ import java.util.Objects;
 
 import static ru.practicum.main.util.EwmConstants.MAX_REVIEW_COMMENT_LENGTH;
 
-@IdClass(EventReview.class)
+@IdClass(EventReviewId.class)
 @Table(name = "events_reviews")
 @Entity
 @Getter
