@@ -7,7 +7,6 @@ import ru.practicum.main.review.model.UserReview;
 import ru.practicum.main.review.model.UserReviewId;
 
 import java.util.List;
-import java.util.Map;
 
 public interface UserReviewRepository extends JpaRepository<UserReview, UserReviewId> {
     @Query("select ur.target.id, AVG(ur.score) from UserReview ur " +
