@@ -14,6 +14,7 @@ import ru.practicum.main.user.repository.UserRepository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -37,7 +38,12 @@ public class UserServiceImpl implements UserService {
                 .map(User::getId)
                 .toList();
 
-        Map<Long, Double> ratingMap = reviewRepository.findAverageScoresByTargetIds(userIds);
+        List<Object[]> result = reviewRepository.findAverageScoresByTargetIds(userIds);
+        Map<Long, Double> ratingMap = result.stream()
+                .collect(Collectors.toMap(
+                        arr -> (Long) arr[0],
+                        arr -> (Double) arr[1]
+                ));
 
         return users.stream()
                 .map(user -> {
