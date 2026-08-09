@@ -29,9 +29,9 @@ public interface EventMapper {
 
     Location toLocation(LocationDto locationDto);
 
-    EventFullDto toFullDto(Event event, Long views, Long confirmedRequests);
+    EventFullDto toFullDto(Event event, Long views, Long confirmedRequests, Double rating);
 
-    EventShortDto toShortDto(Event event, Long views, Long confirmedRequests);
+    EventShortDto toShortDto(Event event, Long views, Long confirmedRequests, Double rating);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)

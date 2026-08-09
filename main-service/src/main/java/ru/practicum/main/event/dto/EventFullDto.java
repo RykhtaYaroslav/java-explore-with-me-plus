@@ -41,4 +41,5 @@ public class EventFullDto {
     private EventState state;
     private Long confirmedRequests;
     private Long views;
+    private Double rating;
 }

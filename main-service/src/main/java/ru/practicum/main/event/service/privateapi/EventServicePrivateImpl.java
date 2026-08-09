@@ -29,7 +29,6 @@ import ru.practicum.main.request.model.RequestStatus;
 import ru.practicum.main.request.repository.RequestRepository;
 import ru.practicum.main.user.model.User;
 import ru.practicum.main.user.repository.UserRepository;
-import ru.practicum.stats.client.StatsClient;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -50,7 +49,6 @@ public class EventServicePrivateImpl implements EventServicePrivate {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final RequestRepository requestRepository;
-    private final StatsClient statsRepository;
 
     private final EventMapper eventMapper;
     private final RequestMapper requestMapper;
@@ -68,7 +66,7 @@ public class EventServicePrivateImpl implements EventServicePrivate {
 
         event = eventRepository.save(event);
 
-        return eventMapper.toFullDto(event, 0L, 0L);
+        return eventMapper.toFullDto(event, 0L, 0L, 5.0);
     }
 
     @Override
