@@ -6,9 +6,12 @@ import org.springframework.data.repository.query.Param;
 import ru.practicum.main.review.model.UserReview;
 import ru.practicum.main.review.model.UserReviewId;
 
+import java.util.List;
+
 public interface UserReviewRepository extends JpaRepository<UserReview, UserReviewId> {
-    @Query("SELECT AVG(ur.score) FROM UserReview ur WHERE ur.target.id = :userId")
-    Double findAverageScoreByTargetId(@Param("userId") Long userId);
+    @Query("select ur.target.id, AVG(ur.score) from UserReview ur " +
+            "where ur.target.id in :targetIds group by ur.target.id")
+    List<Object[]> findAverageScoresByTargetIds(@Param("targetIds") List<Long> targetIds);
 
     @Query("""
             SELECT COUNT(ur) > 0

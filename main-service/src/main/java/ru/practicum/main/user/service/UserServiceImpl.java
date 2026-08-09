@@ -13,7 +13,8 @@ import ru.practicum.main.user.model.User;
 import ru.practicum.main.user.repository.UserRepository;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Service
@@ -30,16 +31,25 @@ public class UserServiceImpl implements UserService {
         if (ids == null) {
             users = userRepository.getUsersWithoutIds(from, size);
         } else {
-            users = userRepository.findAllById(ids).stream()
-                    .filter(Objects::nonNull)
-                    .toList();
+            users = userRepository.findAllById(ids);
         }
+
+        List<Long> userIds = users.stream()
+                .map(User::getId)
+                .toList();
+
+        List<Object[]> result = reviewRepository.findAverageScoresByTargetIds(userIds);
+        Map<Long, Double> ratingMap = result.stream()
+                .collect(Collectors.toMap(
+                        arr -> (Long) arr[0],
+                        arr -> (Double) arr[1]
+                ));
 
         return users.stream()
                 .map(user -> {
                     UserDto dto = mapper.toUserDtoOut(user);
-                    Double rating = reviewRepository.findAverageScoreByTargetId(user.getId());
-                    dto.setRating(rating != null ? rating : 0.0);
+                    Double rating = ratingMap.getOrDefault(user.getId(), 0.0);
+                    dto.setRating(rating);
                     return dto;
                 })
                 .toList();
