@@ -44,8 +44,20 @@ public class EventServicePublicImpl implements EventServicePublic {
 
         List<EventShortDto> shortDtos = eventStatsCollector.getShortDtoListWithStats(events);
 
-        if (params.sort() == EventSort.VIEWS) {
-            shortDtos = shortDtos.stream().sorted(Comparator.comparingLong(EventShortDto::getViews).reversed()).toList();
+        EventSort sortType = params.sort();
+
+        switch (sortType) {
+            case EVENT_DATE -> { /*Do nothing*/ }
+            case VIEWS -> shortDtos = shortDtos.stream()
+                    .sorted(Comparator.comparingLong(EventShortDto::getViews).reversed())
+                    .toList();
+            case RATING -> shortDtos = shortDtos.stream()
+                    .sorted(Comparator.comparing(
+                            EventShortDto::getRating,
+                            Comparator.nullsLast(Comparator.naturalOrder())
+                    ).reversed())
+                    .toList();
+            case null, default -> { /*Do nothing*/ }
         }
 
         return shortDtos;

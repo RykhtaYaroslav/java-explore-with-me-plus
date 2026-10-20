@@ -10,4 +10,6 @@ public interface UserMapper {
     User toUser(NewUserRequest dto);
 
     UserDto toUserDtoOut(User entity);
+
+    UserShortDto toUserShortDto(User user);
 }

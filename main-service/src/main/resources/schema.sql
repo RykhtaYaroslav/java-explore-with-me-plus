@@ -53,3 +53,29 @@ CREATE TABLE IF NOT EXISTS requests (
     CONSTRAINT fk_requests_events FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE CASCADE,
     CONSTRAINT fk_requests_users FOREIGN KEY (requester_id) REFERENCES users (id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS users_reviews (
+    rater_id BIGINT NOT NULL, -- Тот, кто ставит оценку
+    target_id BIGINT NOT NULL, -- Тот, кому ставят оценку
+    event_id BIGINT NOT NULL, -- id event'a. Все эти три поля - составной первичный ключ
+    score INT NOT NULL CHECK (score >= 1 AND score <= 5), -- Сама оценка (от 1 до 5)
+    comment VARCHAR(200),
+
+    CONSTRAINT pk_users_reviewes PRIMARY KEY (rater_id, target_id, event_id), -- составной первичный ключ
+
+    CONSTRAINT fk_users_reviews_rater FOREIGN KEY (rater_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fr_users_reviews_target FOREIGN KEY (target_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fr_users_reviews_event FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS events_reviews (
+    rater_id BIGINT NOT NULL, -- Тот, кто ставит оценку
+    event_id BIGINT NOT NULL, -- id event'a. Все эти два поля - составной первичный ключ
+    score INT NOT NULL CHECK (score >= 1 AND score <= 5), -- Сама оценка (от 1 до 5)
+    comment VARCHAR(200),
+
+    CONSTRAINT pk_events_reviewes PRIMARY KEY (rater_id, event_id), -- составной первичный ключ
+
+    CONSTRAINT fk_events_reviews_rater FOREIGN KEY (rater_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_events_reviews_event FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+);
